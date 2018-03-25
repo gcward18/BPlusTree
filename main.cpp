@@ -92,7 +92,79 @@ class BPlusTree
     }
     void remove(int val)
     {
+        Node* currNode = root;
+        Node* valNode = NULL;
+        if(currNode->leaf)
+        {
+            if(currNode->nodes == 0)
+            {
+                //Merge
+            }
+            else if(currNode->nodes == 1)
+            {
+                if(currNode->values[0] == val)
+                {
+                    currNode->values[0] = -1;
+                    currNode->nodes--;
+                }
+                else
+                {
+                    cout << "Value not found." << endl;
+                    return;
+                }
 
+
+                //Merge
+            }
+            else if(currNode->nodes == 2)
+            {
+                if(currNode->values[1] == val)
+                   currNode->values[1] = -1;
+                else if(currNode->values[0] == val)
+                {
+                    currNode->values[0] = currNode->values[1]
+                    currNode->values[1] = -1;
+                }
+                else
+                {
+                    cout << "Value not found." << endl;
+                    return;
+                }
+                currNode->nodes--;
+            }
+            else
+            {
+                if(currNode->values[2] == val)
+                   currNode->values[2] = -1;
+                else if(currNode->values[1] == val)
+                {
+                    currNode->values[1] = currNode->values[2]
+                    currNode->values[2] = -1;
+                }
+                else if(currNode->values[0] == val)
+                {
+                    currNode->values[1] = currNode->values[2]
+                    currNode->values[0] = currNode->values[1]
+                    currNode->values[2] = -1;
+                }
+                else
+                {
+                    cout << "Value not found." << endl;
+                    return;
+                }
+                currNode->nodes--;
+            }
+        else
+        {
+            if(val > currNode->values[2])
+                currNode = currNode->children[3];
+            else if(val > currNode->values[1])
+                currNode = currNode->children[2];
+            else if(val > currNode->values[0])
+                currNode = currNode->children[1];
+            else
+                currNode = currNode->children[0];
+        }
     }
     void split(Node* node)
     {
