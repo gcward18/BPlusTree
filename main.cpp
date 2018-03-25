@@ -94,14 +94,18 @@ class BPlusTree
     {
         Node* currNode = root;
         Node* valNode = NULL;
+        int valNodePos;
         if(currNode->leaf)
         {
+
             if(currNode->nodes == 0)
             {
                 //Merge
             }
             else if(currNode->nodes == 1)
             {
+
+            }
                 if(currNode->values[0] == val)
                 {
                     currNode->values[0] = -1;
@@ -113,11 +117,15 @@ class BPlusTree
                     return;
                 }
 
+                if(valNode != NULL)
+                    valNode->values[valNodePos] = -1;
 
                 //Merge
             }
             else if(currNode->nodes == 2)
             {
+
+
                 if(currNode->values[1] == val)
                    currNode->values[1] = -1;
                 else if(currNode->values[0] == val)
@@ -130,6 +138,10 @@ class BPlusTree
                     cout << "Value not found." << endl;
                     return;
                 }
+
+                if(valNode != NULL)
+                    valNode->values[valNodePos] = currNode->values[0];
+
                 currNode->nodes--;
             }
             else
@@ -152,10 +164,20 @@ class BPlusTree
                     cout << "Value not found." << endl;
                     return;
                 }
+
+                if(valNode != NULL)
+                    valNode->values[valNodePos] = currNode->values[1];
                 currNode->nodes--;
             }
         else
         {
+            for(int i = 0; i < nodes; i++)
+                if(val == currNode->values[i])
+                {
+                    valNode = currNode;
+                    valNodePos = i;
+                }
+
             if(val > currNode->values[2])
                 currNode = currNode->children[3];
             else if(val > currNode->values[1])
@@ -167,6 +189,10 @@ class BPlusTree
         }
     }
     void split(Node* node)
+    {
+
+    }
+    void merge(Node* node1, Node* node2)
     {
 
     }
