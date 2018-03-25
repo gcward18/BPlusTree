@@ -47,13 +47,31 @@ class BPlusTree
             }
             else if(currNode->nodes == 1)
             {
-                currNode->values[1] = val;
+                if(val < currNode->values[0])
+                {
+                    currNode->values[1] = currNode->values[0];
+                    currNode->values[0] = val;
+                }
+                else
+                    currNode->values[1] = val;
                 currNode->nodes++;
             }
             else if(currNode->nodes == 2)
             {
-                 currNode->values[2] = val;
-                 currNode->nodes++;
+                if(val < currNode->values[0])
+                {
+                    currNode->values[2] = currNode->values[1];
+                    currNode->values[1] = currNode->values[0];
+                    currNode->values[0] = val;
+                }
+                else if(val < currNode->values[1])
+                {
+                    currNode->values[2] = currNode->values[1];
+                    currNode->values[1] = val;
+                }
+                else
+                    currNode->values[2] = val;
+                currNode->nodes++;
             }
             else
             {
