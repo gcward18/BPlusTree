@@ -1,6 +1,34 @@
 #include <iostream>
-
 using namespace std;
+
+
+template <typename T>
+void swap_val(T& val1,T& val2)
+{
+    T temp = val1;
+    val1 = val2;
+    val2 = temp;
+
+    return;
+}
+
+template <typename T>
+void insertion_sort(T unsorted_array[], int size_of_array)
+{
+    int i = 1;
+    int j = 0;
+    while(i < size_of_array)
+    {
+        j = i -1;
+        while((unsorted_array[j] > unsorted_array[j+1]) && (j >= 0))
+        {
+            cout << "swapped value: "<< unsorted_array[j] <<", "<<unsorted_array[j+1] <<endl;
+            swap_val(unsorted_array[j], unsorted_array[j+1]);
+            j--;
+        }
+        i++;
+    }
+}
 
 class Node{
     public:
@@ -51,15 +79,15 @@ class Node{
 
     //This is a constructor for an oversized node, to be
     //used when the split function is called
-    Node(int num_vals){
+    Node(int input){
 
         //Defaulting the values for a B+ Tree of p=num_vals
         leaf = true;
-        max_num_of_vals = num_vals;
+        max_num_of_vals = input;
         children = new Node*[max_num_of_vals+1];
         values = new int[max_num_of_vals];
         act_num_of_vals = 0;
-        max_num_of_pointers = num_vals+1;
+        max_num_of_pointers = input+1;
         act_num_of_pointers = 0;
 
         //Default values to -1
@@ -121,42 +149,56 @@ public:
         root = new Node();
     }
 
+    int split(Node* node, int i){
+
+    }
+
     void insert(Node* root, int input){
-        cout << "Insertion Called"<<endl;
-        Node* currNode = new Node(root);
 
         //Recusively try to find leaf node
-        while(currNode->leaf == false){
+        while(root->leaf == false){
             cout << "current Node is not a Leaf Node"<<endl;
-            if((currNode->act_num_of_vals <= 4)&&(input > currNode->values[2]))
-                    insert(currNode->children[3],input);
-            if((currNode->act_num_of_vals <= 3)&&(input > currNode->values[1]))
-                    insert(currNode->children[2],input);
-            if((currNode->act_num_of_vals <= 2)&&(input > currNode->values[0]))
-                    insert(currNode->children[1],input);
-            if((currNode->act_num_of_vals == 1)&&(input > currNode->values[0]))
-                    insert(currNode->children[0],input);
+            if(input > root->values[2])
+                    insert(root->children[3],input);
+            else if(input > root->values[1])
+                    insert(root->children[2],input);
+            else if(input > root->values[0])
+                    insert(root->children[1],input);
+            else
+                    insert(root->children[0],input);
         }
-        cout << "current Node is a leaf Node"<<endl;
+
         //Leaf is found, now check to find where to insert
         //value that has been passed
-        for(int i = 0; i < currNode->max_num_of_vals; i++){
+        for(int i = 0; i < root->max_num_of_vals; i++){
             //Value has already been inserted, cannot
             //insert again
-            if(currNode->values[i] == input){
+            if(root->values[i] == input){
                 cout << "Value already in the tree, cannot insert "
                 << input << endl;
                 return;
             }
         }
-        currNode->act_num_of_vals++;
-        for(int i = 0; i< currNode->act_num_of_vals;i++){
-            cout << currNode->values[i] <<endl;
-            if(currNode->values[i] < input){
-                currNode->values[i] = input;
-                currNode->act_num_of_vals++;
-                cout << "node at postion " << i << " updated"<<endl;
-            }
+        //Variables for betting understanding of the code
+        root->act_num_of_vals++;
+        int actual = root->act_num_of_vals;
+        int maximum = root->max_num_of_vals;
+
+        //This is a cause for a split
+        if(actual == maximum+1){
+
+            Node *temp = new Node(4);
+            temp->values[3] = input;
+
+            for(int i = 0; i < actual-1; i++)
+                temp->values[i] = root->values[i];
+
+            insertion_sort(temp->values,actual);
+
+        }
+        else {
+            root->values[actual-1]= input;
+            insertion_sort( root->values,actual);
         }
     }
 
@@ -170,31 +212,7 @@ public:
         delete root->values;
     }
 
-    void clear(Node* root){
-        while(root->leaf == false){
-            if(root->act_num_of_vals == 1){
-                clear(root->children[0]);
-                clear(root->children[1]);
-            }
 
-            else if(root->act_num_of_vals == 2){
-                clear(root->children[0]);
-                clear(root->children[1]);
-                clear(root->children[2]);
-            }
-
-            else if(root->act_num_of_vals == 3){
-                clear(root->children[0]);
-                clear(root->children[1]);
-                clear(root->children[2]);
-                clear(root->children[3]);
-            }
-        }
-        for(int i= 0; i <= root->max_num_of_vals; i++){
-            delete root->children[i];
-        }
-        delete[] root;
-    }
 };
 
 int main()
