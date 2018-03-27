@@ -166,15 +166,23 @@ public:
         while(!isLeaf(node)){
             if(input < node->key[0]){
                     key = insert(node->pointer[0],input,0);
+                    //if(key != -1)
+                      //something
             }
             else if(input >= node->key[0] && input < node->key[1]){
                     key = insert(node->pointer[1],input,1);
+                    //if(key != -1)
+                      //something
             }
             else if(input >= node->key[1] && input < node->key[2]){
                     key = insert(node->pointer[2],input,2);
+                    //if(key != -1)
+                      //something
             }
             else if(input >= node->key[2] ){
                     key = insert(node->pointer[3],input,3);
+                    //if(key != -1)
+                      //something
             }
             else
                 cout << "ERROR"<<endl;
@@ -189,13 +197,13 @@ public:
 
         //This is a cause for a split
         if(areEqual(actual, maximum)){
-            key = split(node,input,index);
+            split(node,input,index);
             cout << "printing node"<<endl;
             print(node);
         }
         else {
-            node->key[actual-1]= input;
-            insertion_sort(node->key,actual);
+            node->key[actual]= input;
+            insertion_sort(node->key,actual+1);
             cout << "value inserted " << input << " now node looks like"<<endl;
             print(node);
             node->actVals++;
@@ -226,6 +234,7 @@ public:
         insertion_sort(temp->key,maximum+1);
         mid = ceil(actual/2);
 
+        //n1,n2 = destination; temp = src; mid,maximum+1 = positions
         copyLowerVals(n1,temp,mid);
         copyUpperVals(n2,temp,mid,maximum+1);
         cout << "n1 NODE:" <<endl;
@@ -233,13 +242,13 @@ public:
         cout << "n2 NODE:"<<endl;
         print(n2);
 
-        clearRemainingKeys(node,index);
+        clearRemainingKeys(node,index+1);
         node->key[0] = n2->key[0];
         node->actVals =1;
 
         delete temp;
-        node->pointer[0] = n1;
-        node->pointer[1] = n2;
+        node->pointer[index] = n1;
+        node->pointer[index+1] = n2;
         return n2->key[0];
     }
 
@@ -248,40 +257,39 @@ public:
     ///////////////////////////////////////////////
     //             HELPER FUNCITONS              //
     ///////////////////////////////////////////////
-    void copyUpperVals(Node* n1, Node* node, int start, int stop){
-        n1->actVals     = stop-start;
-        n1->actPtrs = stop-start+1;
+    void copyUpperVals(Node* trg, Node* src, int start, int stop){
+        trg->actVals = stop-start;
+        trg->actPtrs = stop-start+1;
         for(int i= 0; i < start; i++){
-            n1->key[i]=node->key[start+i];
+            trg->key[i]=src->key[start+i];
         }
     }
 
-    void copyLowerVals(Node* n1, Node* node, int range){
-        n1->actVals     = range;
-        n1->actPtrs = range+1;
+    void copyLowerVals(Node* trg, Node* src, int range){
+        trg->actVals = range;
+        trg->actPtrs = range+1;
         for(int i= 0; i < range; i++){
-            n1->key[i]=node->key[i];
+            trg->key[i] = src->key[i];
         }
     }
 
-    void print(Node* n){
-        for(int i = 0; i < n->maxVals; i++){
-            cout << "i = " << i << ", node value = " << n->key[i] <<endl;
-
+    void print(Node* src){
+        for(int i = 0; i < src->maxVals; i++){
+            cout << "i = " << i << ", node value = " << src->key[i] <<endl;
         }
         return;
     }
 
-    bool isLeaf(Node* node){
-        if(node->leaf == true)
+    bool isLeaf(Node* src){
+        if(src->leaf == true)
             return true;
         else
             return false;
     }
 
-    void clearRemainingKeys(Node* node, int start){
-        for(int i= start-1; i < node->maxVals; i++)
-            node->key[i] = -1;
+    void clearRemainingKeys(Node* src, int start){
+        for(int i= start-1; i < src->maxVals; i++)
+            src->key[i] = -1;
     }
 
     bool areEqual(int a, int b){
@@ -291,9 +299,9 @@ public:
             return false;
     }
 
-    bool alreadyInserted(Node* node, int input){
-        for(int i = 0; i < node->maxVals; i++){
-            if(node->key[i] == input){
+    bool alreadyInserted(Node* src, int input){
+        for(int i = 0; i < src->maxVals; i++){
+            if(src->key[i] == input){
                 return true;
             }
         }
