@@ -157,39 +157,20 @@ public:
     }
 
     int insert(Node* node, int input,int index=0){
+
         int key;
         //Variables for betting understanding of the code
         int actual = node->actVals;
         int maximum = node->maxVals;
+        Node* temp = node;
 
         //Recusively try to find leaf node
         while(!isLeaf(node)){
-            if(input < node->key[0]){
-                    key = insert(node->pointer[0],input,0);
-                    //if(key != -1)
-                      //something
-            }
-            else if(input >= node->key[0] && input < node->key[1]){
-                    key = insert(node->pointer[1],input,1);
-                    //if(key != -1)
-                      //something
-            }
-            else if(input >= node->key[1] && input < node->key[2]){
-                    key = insert(node->pointer[2],input,2);
-                    //if(key != -1)
-                      //something
-            }
-            else if(input >= node->key[2] ){
-                    key = insert(node->pointer[3],input,3);
-                    //if(key != -1)
-                      //something
-            }
-            else
-                cout << "ERROR"<<endl;
-                return -1;
+            temp = findLeafNode(node,input);
+            index = findIndex(node,input);
         }
 
-        if(alreadyInserted(node,input)){
+        if(alreadyInserted(temp,input)){
             cout << "Value already in the tree, cannot insert "
             << input << endl;
             return -1;
@@ -197,17 +178,16 @@ public:
 
         //This is a cause for a split
         if(areEqual(actual, maximum)){
-            split(node,input,index);
-            cout << "printing node"<<endl;
-            print(node);
+            split(temp,input,index);
+            cout << "NODE"<<endl;
+            print(temp);
         }
         else {
-            node->key[actual]= input;
-            insertion_sort(node->key,actual+1);
-            cout << "value inserted " << input << " now node looks like"<<endl;
-            print(node);
-            node->actVals++;
+            temp->key[actual]= input;
+            insertion_sort(temp->key,actual+1);
+            temp->actVals++;
         }
+
         return key;
     }
 
@@ -225,6 +205,7 @@ public:
         Node *temp  = new Node(4);
         Node* n1    = new Node();
         Node* n2    = new Node();
+
         node->leaf  = false;
         temp->key[actual] = input;
 
@@ -237,12 +218,11 @@ public:
         //n1,n2 = destination; temp = src; mid,maximum+1 = positions
         copyLowerVals(n1,temp,mid);
         copyUpperVals(n2,temp,mid,maximum+1);
-        cout << "n1 NODE:" <<endl;
-        print(n1);
-        cout << "n2 NODE:"<<endl;
-        print(n2);
-
         clearRemainingKeys(node,index+1);
+        cout << "CHILD 1"<<endl;
+        print(n1);
+        cout << "CHILD 2"<<endl;
+        print(n2);
         node->key[0] = n2->key[0];
         node->actVals =1;
 
@@ -308,6 +288,60 @@ public:
         return false;
     }
 
+    Node* findLeafNode(Node* src,int input){
+      if(input < src->key[0]){
+          findLeafNode(src->pointer[0],input);
+          //if(key != -1)
+            //something
+      }
+      else if(input >= src->key[0] && input < src->key[1]){
+          findLeafNode(src->pointer[1],input);
+          //if(key != -1)
+            //something
+      }
+      else if(input >= src->key[1] && input < src->key[2]){
+          findLeafNode(src->pointer[2],input);
+          //if(key != -1)
+            //something
+      }
+      else if(input >= src->key[2] ){
+          findLeafNode(src->pointer[3],input);
+          //if(key != -1)
+            //something
+      }
+      else
+          cout << "ERROR"<<endl;
+          return NULL;
+    }
+
+    int findIndex(Node* src,int input,int index=0){
+      int holder;
+      if(input < src->key[0]){
+          holder = findIndex(src->pointer[0],input,0);
+          //if(key != -1)
+            //something
+      }
+      else if(input >= src->key[0] && input < src->key[1]){
+          holder = findIndex(src->pointer[1],input,1);
+          //if(key != -1)
+            //something
+      }
+      else if(input >= src->key[1] && input < src->key[2]){
+          holder = findIndex(src->pointer[2],input,2);
+          //if(key != -1)
+            //something
+      }
+      else if(input >= src->key[2] ){
+          holder = findIndex(src->pointer[3],input,3);
+          //if(key != -1)
+            //something
+      }
+      else{
+            cout << "ERROR"<<endl;
+            return -1;
+      }
+      return holder;
+    }
 };
 
 int main()
