@@ -47,33 +47,33 @@ class Node{
         //Variables representing the maximum number
         //of pointer  and elements able to be stored
         //in a particular node
-        int    max_num_of_vals;
-        int    max_num_of_pointers;
+        int    maxVals;
+        int    maxPtrs;
 
         //Variables representing the actual number
         //of pointer  and elements that are currently
         //in the node
-        int    act_num_of_vals;
-        int    act_num_of_pointers;
+        int    actVals;
+        int    actPtrs;
 
     Node(){
 
         //Defaulting the key for a B+ Tree of p=4
         leaf = true;
-        max_num_of_vals = 3;
-        pointer  = new Node*[max_num_of_vals+1];
-        key = new int[max_num_of_vals];
-        act_num_of_vals = 0;
-        max_num_of_pointers = max_num_of_vals+1;
-        act_num_of_pointers = 0;
+        maxVals = 3;
+        pointer  = new Node*[maxVals+1];
+        key = new int[maxVals];
+        actVals = 0;
+        maxPtrs = maxVals+1;
+        actPtrs = 0;
 
         //Set key to default -1, nothing has been
         //inserted yet
-        for(int i = 0; i < max_num_of_vals; i++)
+        for(int i = 0; i < maxVals; i++)
             key[i] = -1;
 
         //Defaultpointer to NULL
-        for(int i= 0; i < max_num_of_pointers; i++)
+        for(int i= 0; i < maxPtrs; i++)
            pointer[i] = NULL;
     }
 
@@ -83,20 +83,20 @@ class Node{
 
         //Defaulting the key for a B+ Tree of p=num_vals
         leaf = true;
-        max_num_of_vals = input;
-        pointer = new Node*[max_num_of_vals+1];
-        key = new int[max_num_of_vals];
-        act_num_of_vals = 0;
-        max_num_of_pointers = input+1;
-        act_num_of_pointers = 0;
+        maxVals = input;
+        pointer = new Node*[maxVals+1];
+        key = new int[maxVals];
+        actVals = 0;
+        maxPtrs = input+1;
+        actPtrs = 0;
 
         //Default key to -1
-        for(int i = 0; i < max_num_of_vals; i++){
+        for(int i = 0; i < maxVals; i++){
             key[i] = -1;
         }
 
         //Default pointer  to NULL
-        for(int i = 0; i < max_num_of_pointers; i++){
+        for(int i = 0; i < maxPtrs; i++){
             pointer [i] = NULL;
         }
     }
@@ -104,21 +104,21 @@ class Node{
     Node(Node* node){
 
         leaf = true;
-        max_num_of_vals = node->max_num_of_vals;
-        act_num_of_vals = node->act_num_of_vals;
-        max_num_of_pointers = node->max_num_of_pointers;
-        act_num_of_pointers = node->act_num_of_pointers;
-        key = new int[this->max_num_of_vals];
-        pointer  = new Node*[this->max_num_of_pointers];
+        maxVals = node->maxVals;
+        actVals = node->actVals;
+        maxPtrs = node->maxPtrs;
+        actPtrs = node->actPtrs;
+        key = new int[this->maxVals];
+        pointer  = new Node*[this->maxPtrs];
 
-        for(int i = 0; i < node->max_num_of_vals; i++){
+        for(int i = 0; i < node->maxVals; i++){
             key[i] = node->key[i];
             pointer [i] = node->pointer[i];
         }
     }
 
     ~Node(){
-        for(int i= 0; i < max_num_of_pointers; i++)
+        for(int i= 0; i < maxPtrs; i++)
             ClearTree(pointer[i]);
         delete[] pointer ;
     }
@@ -127,9 +127,9 @@ class Node{
         if(node == NULL)
             return NULL;
 
-        for(int i = 0; i < max_num_of_vals; i++)
+        for(int i = 0; i < maxVals; i++)
             ClearTree(node->pointer[i]);
-        for(int i = 0; i < max_num_of_vals; i++)
+        for(int i = 0; i < maxVals; i++)
             delete node->pointer[i];
         delete[] node->pointer ;
 
@@ -159,8 +159,8 @@ public:
     int insert(Node* node, int input,int index=0){
         int key;
         //Variables for betting understanding of the code
-        int actual = node->act_num_of_vals;
-        int maximum = node->max_num_of_vals;
+        int actual = node->actVals;
+        int maximum = node->maxVals;
 
         //Recusively try to find leaf node
         while(!isLeaf(node)){
@@ -195,8 +195,10 @@ public:
         }
         else {
             node->key[actual-1]= input;
-            insertion_sort( node->key,actual);
-            node->act_num_of_vals++;
+            insertion_sort(node->key,actual);
+            cout << "value inserted " << input << " now node looks like"<<endl;
+            print(node);
+            node->actVals++;
         }
         return key;
     }
@@ -208,8 +210,8 @@ public:
 
     int split(Node* node, int input, int index=0){
 
-        int actual  = node->act_num_of_vals;
-        int maximum = node->max_num_of_vals;
+        int actual  = node->actVals;
+        int maximum = node->maxVals;
         int mid     = actual/2;
 
         Node *temp  = new Node(4);
@@ -233,7 +235,7 @@ public:
 
         clearRemainingKeys(node,index);
         node->key[0] = n2->key[0];
-        node->act_num_of_vals =1;
+        node->actVals =1;
 
         delete temp;
         node->pointer[0] = n1;
@@ -247,23 +249,23 @@ public:
     //             HELPER FUNCITONS              //
     ///////////////////////////////////////////////
     void copyUpperVals(Node* n1, Node* node, int start, int stop){
-        n1->act_num_of_vals     = stop-start;
-        n1->act_num_of_pointers = stop-start+1;
+        n1->actVals     = stop-start;
+        n1->actPtrs = stop-start+1;
         for(int i= 0; i < start; i++){
             n1->key[i]=node->key[start+i];
         }
     }
 
     void copyLowerVals(Node* n1, Node* node, int range){
-        n1->act_num_of_vals     = range;
-        n1->act_num_of_pointers = range+1;
+        n1->actVals     = range;
+        n1->actPtrs = range+1;
         for(int i= 0; i < range; i++){
             n1->key[i]=node->key[i];
         }
     }
 
     void print(Node* n){
-        for(int i = 0; i < n->max_num_of_vals; i++){
+        for(int i = 0; i < n->maxVals; i++){
             cout << "i = " << i << ", node value = " << n->key[i] <<endl;
 
         }
@@ -278,7 +280,7 @@ public:
     }
 
     void clearRemainingKeys(Node* node, int start){
-        for(int i= start-1; i < node->max_num_of_vals; i++)
+        for(int i= start-1; i < node->maxVals; i++)
             node->key[i] = -1;
     }
 
@@ -290,7 +292,7 @@ public:
     }
 
     bool alreadyInserted(Node* node, int input){
-        for(int i = 0; i < node->max_num_of_vals; i++){
+        for(int i = 0; i < node->maxVals; i++){
             if(node->key[i] == input){
                 return true;
             }
