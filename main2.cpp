@@ -37,90 +37,90 @@ class Node{
         //the node you're at is a leaf
         bool   leaf;
 
-        //Array of Pointers to used for internal nodes
-        Node** children;
+        //Array of pointer  to used for internal nodes
+        Node** pointer;
 
         //Dynamic array of elements that are contained
         //within the B+ Tree nodes
-        int*   values;
+        int*   key;
 
         //Variables representing the maximum number
-        //of pointers and elements able to be stored
+        //of pointer  and elements able to be stored
         //in a particular node
         int    max_num_of_vals;
         int    max_num_of_pointers;
 
         //Variables representing the actual number
-        //of pointers and elements that are currently
+        //of pointer  and elements that are currently
         //in the node
         int    act_num_of_vals;
         int    act_num_of_pointers;
 
     Node(){
 
-        //Defaulting the values for a B+ Tree of p=4
+        //Defaulting the key for a B+ Tree of p=4
         leaf = true;
         max_num_of_vals = 3;
-        children = new Node*[max_num_of_vals+1];
-        values = new int[max_num_of_vals];
+        pointer  = new Node*[max_num_of_vals+1];
+        key = new int[max_num_of_vals];
         act_num_of_vals = 0;
         max_num_of_pointers = max_num_of_vals+1;
         act_num_of_pointers = 0;
 
-        //Set values to default -1, nothing has been
+        //Set key to default -1, nothing has been
         //inserted yet
         for(int i = 0; i < max_num_of_vals; i++)
-            values[i] = -1;
+            key[i] = -1;
 
-        //Default children to NULL
+        //Defaultpointer to NULL
         for(int i= 0; i < max_num_of_pointers; i++)
-            children[i] = NULL;
+           pointer[i] = NULL;
     }
 
     //This is a constructor for an oversized node, to be
     //used when the split function is called
     Node(int input){
 
-        //Defaulting the values for a B+ Tree of p=num_vals
+        //Defaulting the key for a B+ Tree of p=num_vals
         leaf = true;
         max_num_of_vals = input;
-        children = new Node*[max_num_of_vals+1];
-        values = new int[max_num_of_vals];
+        pointer = new Node*[max_num_of_vals+1];
+        key = new int[max_num_of_vals];
         act_num_of_vals = 0;
         max_num_of_pointers = input+1;
         act_num_of_pointers = 0;
 
-        //Default values to -1
+        //Default key to -1
         for(int i = 0; i < max_num_of_vals; i++){
-            values[i] = -1;
+            key[i] = -1;
         }
 
-        //Default children to NULL
+        //Default pointer  to NULL
         for(int i = 0; i < max_num_of_pointers; i++){
-            children[i] = NULL;
+            pointer [i] = NULL;
         }
     }
 
-    Node(Node* root){
+    Node(Node* node){
 
         leaf = true;
-        max_num_of_vals = root->max_num_of_vals;
-        act_num_of_vals = root->act_num_of_vals;
-        max_num_of_pointers = root->max_num_of_pointers;
-        act_num_of_pointers = root->act_num_of_pointers;
-        values = new int[this->max_num_of_vals];
-        children = new Node*[this->max_num_of_pointers];
+        max_num_of_vals = node->max_num_of_vals;
+        act_num_of_vals = node->act_num_of_vals;
+        max_num_of_pointers = node->max_num_of_pointers;
+        act_num_of_pointers = node->act_num_of_pointers;
+        key = new int[this->max_num_of_vals];
+        pointer  = new Node*[this->max_num_of_pointers];
 
-        for(int i = 0; i < root->max_num_of_vals; i++){
-            values[i] = root->values[i];
-            children[i] = root->children[i];
+        for(int i = 0; i < node->max_num_of_vals; i++){
+            key[i] = node->key[i];
+            pointer [i] = node->pointer[i];
         }
     }
 
     ~Node(){
         for(int i= 0; i < max_num_of_pointers; i++)
-            ClearTree(children[i]);
-        delete[] children;
+            ClearTree(pointer[i]);
+        delete[] pointer ;
     }
 
     Node* ClearTree(Node* node){
@@ -128,10 +128,10 @@ class Node{
             return NULL;
 
         for(int i = 0; i < max_num_of_vals; i++)
-            ClearTree(node->children[i]);
+            ClearTree(node->pointer[i]);
         for(int i = 0; i < max_num_of_vals; i++)
-            delete node->children[i];
-        delete[] node->children;
+            delete node->pointer[i];
+        delete[] node->pointer ;
 
         return NULL;
 
@@ -153,52 +153,50 @@ public:
 
     ~BPlusTree(){
         root->ClearTree(root);
-        delete root->values;
+        delete root->key;
     }
 
-    int insert(Node* root, int input,int index=0){
+    int insert(Node* node, int input,int index=0){
         int key;
-        int actual;
-        int maximum;
+        //Variables for betting understanding of the code
+        int actual = node->act_num_of_vals;
+        int maximum = node->max_num_of_vals;
 
         //Recusively try to find leaf node
-        while(!isLeaf(root)){
-            cout << "current Node is not a Leaf Node"<<endl;
-            if(input < root->values[0]){
-                    insert(root->children[0],input,0);
+        while(!isLeaf(node)){
+            if(input < node->key[0]){
+                    key = insert(node->pointer[0],input,0);
             }
-            else if(input >= root->values[0] && input < root->values[1]){
-                    insert(root->children[1],input,1);
+            else if(input >= node->key[0] && input < node->key[1]){
+                    key = insert(node->pointer[1],input,1);
             }
-            else if(input >= root->values[1] && input < root->values[2]){
-                    insert(root->children[2],input,2);
+            else if(input >= node->key[1] && input < node->key[2]){
+                    key = insert(node->pointer[2],input,2);
             }
-            else if(input >= root->values[2] ){
-                    insert(root->children[3],input,3);
+            else if(input >= node->key[2] ){
+                    key = insert(node->pointer[3],input,3);
             }
             else
                 cout << "ERROR"<<endl;
                 return -1;
         }
-        if(alreadyInserted(root,input)){
+
+        if(alreadyInserted(node,input)){
             cout << "Value already in the tree, cannot insert "
             << input << endl;
             return -1;
         }
-        //Variables for betting understanding of the code
-        actual = root->act_num_of_vals;
-        maximum = root->max_num_of_vals;
 
         //This is a cause for a split
         if(areEqual(actual, maximum)){
-            key = split(root,input,index);
-            cout << "printing root"<<endl;
-            print(root);
+            key = split(node,input,index);
+            cout << "printing node"<<endl;
+            print(node);
         }
         else {
-            root->values[actual-1]= input;
-            insertion_sort( root->values,actual);
-            root->act_num_of_vals++;
+            node->key[actual-1]= input;
+            insertion_sort( node->key,actual);
+            node->act_num_of_vals++;
         }
         return key;
     }
@@ -208,39 +206,39 @@ public:
 
     }
 
-    int split(Node* root, int input, int index=0){
+    int split(Node* node, int input, int index=0){
 
-            int actual  = root->act_num_of_vals;
-            int maximum = root->max_num_of_vals;
-            int mid     = actual/2;
+        int actual  = node->act_num_of_vals;
+        int maximum = node->max_num_of_vals;
+        int mid     = actual/2;
 
-            Node *temp  = new Node(4);
-            Node* n1    = new Node();
-            Node* n2    = new Node();
-            root->leaf  = false;
-            temp->values[actual-1] = input;
+        Node *temp  = new Node(4);
+        Node* n1    = new Node();
+        Node* n2    = new Node();
+        node->leaf  = false;
+        temp->key[actual-1] = input;
 
-            for(int i = 0; i < actual-1; i++)
-                temp->values[i] = root->values[i];
+        for(int i = 0; i < actual-1; i++)
+            temp->key[i] = node->key[i];
 
-            insertion_sort(temp->values,maximum+1);
-            mid = ceil(actual/2);
+        insertion_sort(temp->key,maximum+1);
+        mid = ceil(actual/2);
 
-            copyLowerVals(n1,temp,mid);
-            copyUpperVals(n2,temp,mid,maximum+1);
-            cout << "printing n1: "<<endl;
-            print(n1);
-            cout << "printing n2: "<<endl;
-            print(n2);
+        copyLowerVals(n1,temp,mid);
+        copyUpperVals(n2,temp,mid,maximum+1);
+        cout << "n1 NODE:" <<endl;
+        print(n1);
+        cout << "n2 NODE:"<<endl;
+        print(n2);
 
-            clearRemainingKeys(root,index-1);
-            root->values[0] = n2->values[0];
-            root->act_num_of_vals =1;
+        clearRemainingKeys(node,index);
+        node->key[0] = n2->key[0];
+        node->act_num_of_vals =1;
 
-            delete temp;
-            root->children[0] = n1;
-            root->children[1] = n2;
-            return n2->values[0];
+        delete temp;
+        node->pointer[0] = n1;
+        node->pointer[1] = n2;
+        return n2->key[0];
     }
 
 
@@ -248,31 +246,40 @@ public:
     ///////////////////////////////////////////////
     //             HELPER FUNCITONS              //
     ///////////////////////////////////////////////
-    void copyUpperVals(Node* n1, Node* root, int start, int stop){
+    void copyUpperVals(Node* n1, Node* node, int start, int stop){
         n1->act_num_of_vals     = stop-start;
         n1->act_num_of_pointers = stop-start+1;
         for(int i= 0; i < start; i++){
-            n1->values[i]=root->values[start+i];
+            n1->key[i]=node->key[start+i];
+        }
+    }
+
+    void copyLowerVals(Node* n1, Node* node, int range){
+        n1->act_num_of_vals     = range;
+        n1->act_num_of_pointers = range+1;
+        for(int i= 0; i < range; i++){
+            n1->key[i]=node->key[i];
         }
     }
 
     void print(Node* n){
         for(int i = 0; i < n->max_num_of_vals; i++){
-            cout << "i = " << i << ", root value = " << n->values[i] <<endl;
+            cout << "i = " << i << ", node value = " << n->key[i] <<endl;
+
         }
         return;
     }
 
-    bool isLeaf(Node* root){
-        if(root->leaf == true)
+    bool isLeaf(Node* node){
+        if(node->leaf == true)
             return true;
         else
             return false;
     }
 
-    void clearRemainingKeys(Node* root, int start){
-        for(int i= start-1; i < root->max_num_of_vals; i++)
-            root->values[i] = -1;
+    void clearRemainingKeys(Node* node, int start){
+        for(int i= start-1; i < node->max_num_of_vals; i++)
+            node->key[i] = -1;
     }
 
     bool areEqual(int a, int b){
@@ -282,23 +289,13 @@ public:
             return false;
     }
 
-    bool alreadyInserted(Node* root, int input){
-        for(int i = 0; i < root->max_num_of_vals; i++){
-            //Value has already been inserted, cannot
-            //insert again
-            if(root->values[i] == input){
+    bool alreadyInserted(Node* node, int input){
+        for(int i = 0; i < node->max_num_of_vals; i++){
+            if(node->key[i] == input){
                 return true;
             }
         }
         return false;
-    }
-
-    void copyLowerVals(Node* n1, Node* root, int range){
-        n1->act_num_of_vals     = range;
-        n1->act_num_of_pointers = range+1;
-        for(int i= 0; i < range; i++){
-            n1->values[i]=root->values[i];
-        }
     }
 
 };
@@ -309,7 +306,7 @@ int main()
     int numNodes = 0;
     int input = 0;
     cout << "Welcome to the B+ tree creator!" << endl;
-    cout << "Please enter the starting values of the tree, type negative number when done:" << endl;
+    cout << "Please enter the starting key of the tree, type negative number when done:" << endl;
     while(input >= 0)
     {
         cin >> input;
@@ -323,4 +320,3 @@ int main()
     cout << numNodes << endl;
     return 0;
 }
-
