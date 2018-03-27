@@ -23,7 +23,6 @@ void insertion_sort(T unsorted_array[], int size_of_array)
         j = i -1;
         while((unsorted_array[j] > unsorted_array[j+1]) && (j >= 0))
         {
-            cout << "swapped value: "<< unsorted_array[j] <<", "<<unsorted_array[j+1] <<endl;
             swap_val(unsorted_array[j], unsorted_array[j+1]);
             j--;
         }
@@ -104,24 +103,24 @@ class Node{
 
     Node(Node* root){
 
-        this->leaf = true;
-        this->max_num_of_vals = root->max_num_of_vals;
-        this->act_num_of_vals = root->act_num_of_vals;
-        this->max_num_of_pointers = root->max_num_of_pointers;
-        this->act_num_of_pointers = root->act_num_of_pointers;
-        this->values = new int[this->max_num_of_vals];
-        this->children = new Node*[this->max_num_of_pointers];
+        leaf = true;
+        max_num_of_vals = root->max_num_of_vals;
+        act_num_of_vals = root->act_num_of_vals;
+        max_num_of_pointers = root->max_num_of_pointers;
+        act_num_of_pointers = root->act_num_of_pointers;
+        values = new int[this->max_num_of_vals];
+        children = new Node*[this->max_num_of_pointers];
 
         for(int i = 0; i < root->max_num_of_vals; i++){
-            this->values[i] = root->values[i];
-            this->children[i] = root->children[i];
+            values[i] = root->values[i];
+            children[i] = root->children[i];
         }
     }
 
     ~Node(){
         for(int i= 0; i < max_num_of_pointers; i++)
-            this->ClearTree(this->children[i]);
-        delete[] this->children;
+            ClearTree(children[i]);
+        delete[] children;
     }
 
     Node* ClearTree(Node* node){
@@ -170,14 +169,14 @@ public:
 
     int split(Node* root, int input){
 
-            int actual = root->act_num_of_vals;
+            int actual  = root->act_num_of_vals;
             int maximum = root->max_num_of_vals;
-            int mid = actual/2;
+            int mid     = actual/2;
 
-            Node *temp = new Node(4);
-            Node* n1   = new Node();
-            Node* n2   = new Node();
-            root->leaf = false;
+            Node *temp  = new Node(4);
+            Node* n1    = new Node();
+            Node* n2    = new Node();
+            root->leaf  = false;
             temp->values[actual-1] = input;
 
             for(int i = 0; i < actual-1; i++)
@@ -191,29 +190,42 @@ public:
 
             delete temp;
 
-            root->children[0] = n1;
-            root->children[1] = n2;
+            if(n1->values[1] < root->values[0]){
+                root->children[0] = n1->children[3];
+                root->children[1] = n2->children[3];
+             //   n1->children[3]   = n2->children[0];
+            }
+            else  if(n1->values[1] >= root->values[0]&&n1->values[1] < root->values[1]){
+                root->children[1] = n1->children[3];
+                root->children[2] = n2->children[3];
+              //  n1->children[3]   = n2->children[0];
+            }
+            else  if(n1->values[1] >= root->values[1]&&n1->values[1] < root->values[2]){
+                root->children[2] = n1->children[3];
+                root->children[3] = n2->children[3];
+             //   n1->children[3]   = n2->children[0];
+            }
     }
 
     Node* insert(Node* root, int input){
-
-        //Recusively try to find leaf node
-        while(root->leaf == false){
-            cout << "current Node is not a Leaf Node"<<endl;
-            if(input > root->values[2])
-                    insert(root->children[3],input);
-            else if(input > root->values[1])
-                    insert(root->children[2],input);
-            else if(input > root->values[0])
-                    insert(root->children[1],input);
-            else
-                    insert(root->children[0],input);
-        }
 
         if(alreadyInserted(root,input)==true){
             cout << "Value already in the tree, cannot insert "
             << input << endl;
             return root;
+        }
+
+        //Recusively try to find leaf node
+        while(root->leaf == false){
+            cout << "current Node is not a Leaf Node"<<endl;
+            if(input < root->values[0])
+                    insert(root->children[0],input);
+            else if(input >= root->values[0] && input < root->values[1])
+                    insert(root->children[1],input);
+            else if(input > root->values[1] && input < root->values[2])
+                    insert(root->children[2],input);
+            else
+                    insert(root->children[3],input);
         }
         //Variables for betting understanding of the code
         root->act_num_of_vals++;
@@ -223,6 +235,7 @@ public:
         //This is a cause for a split
         if(areEqual(actual, maximum+1)){
             split(root,input);
+            print(root);
         }
         else {
             root->values[actual-1]= input;
@@ -258,9 +271,12 @@ public:
     }
 
     void print(Node* n){
-    cout << "print called"<<endl;
-        for(int i = 0; i < n->max_num_of_vals; i++)
+        for(int i = 0; i < n->max_num_of_vals; i++){
             cout << "i = " << i << ", root value = " << n->values[i] <<endl;
+            for(int j=0;j < n->max_num_of_pointers; j++)
+                if(n->children[j]!= NULL)
+                    print(n->children[j]);
+        }
         return;
     }
 
