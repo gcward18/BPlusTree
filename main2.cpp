@@ -138,6 +138,8 @@ class Node{
     }
 };
 
+
+
 class BPlusTree
 {
 public:
@@ -149,25 +151,64 @@ public:
         root = new Node();
     }
 
-    bool alreadyInserted(Node* root, int input){
-        for(int i = 0; i < root->max_num_of_vals; i++){
-            //Value has already been inserted, cannot
-            //insert again
-            if(root->values[i] == input){
-                return true;
+    ~BPlusTree(){
+        root->ClearTree(root);
+        delete root->values;
+    }
+
+    int insert(Node* root, int input,int index=0){
+        int key;
+        int actual;
+        int maximum;
+
+        //Recusively try to find leaf node
+        while(!isLeaf(root)){
+            cout << "current Node is not a Leaf Node"<<endl;
+            if(input < root->values[0]){
+                    insert(root->children[0],input,0);
             }
+            else if(input >= root->values[0] && input < root->values[1]){
+                    insert(root->children[1],input,1);
+            }
+            else if(input >= root->values[1] && input < root->values[2]){
+                    insert(root->children[2],input,2);
+            }
+            else if(input >= root->values[2] ){
+                    insert(root->children[3],input,3);
+            }
+            else
+                cout << "ERROR"<<endl;
+                return -1;
         }
-        return false;
+        if(alreadyInserted(root,input)){
+            cout << "Value already in the tree, cannot insert "
+            << input << endl;
+            return -1;
+        }
+        //Variables for betting understanding of the code
+        actual = root->act_num_of_vals;
+        maximum = root->max_num_of_vals;
+
+        //This is a cause for a split
+        if(areEqual(actual, maximum)){
+            key = split(root,input,index);
+            cout << "printing root"<<endl;
+            print(root);
+        }
+        else {
+            root->values[actual-1]= input;
+            insertion_sort( root->values,actual);
+            root->act_num_of_vals++;
+        }
+        return key;
     }
 
-    bool areEqual(int a, int b){
-        if(a==b)
-            return true;
-        else
-            return false;
+    void remove(int val)
+    {
+
     }
 
-    int split(Node* root, int input){
+    int split(Node* root, int input, int index=0){
 
             int actual  = root->act_num_of_vals;
             int maximum = root->max_num_of_vals;
@@ -187,81 +228,26 @@ public:
 
             copyLowerVals(n1,temp,mid);
             copyUpperVals(n2,temp,mid,maximum+1);
+            cout << "printing n1: "<<endl;
+            print(n1);
+            cout << "printing n2: "<<endl;
+            print(n2);
+
+            clearRemainingKeys(root,index-1);
+            root->values[0] = n2->values[0];
+            root->act_num_of_vals =1;
 
             delete temp;
-
-            if(n1->values[1] < root->values[0]){
-                root->children[0] = n1->children[3];
-                root->children[1] = n2->children[3];
-             //   n1->children[3]   = n2->children[0];
-            }
-            else  if(n1->values[1] >= root->values[0]&&n1->values[1] < root->values[1]){
-                root->children[1] = n1->children[3];
-                root->children[2] = n2->children[3];
-              //  n1->children[3]   = n2->children[0];
-            }
-            else  if(n1->values[1] >= root->values[1]&&n1->values[1] < root->values[2]){
-                root->children[2] = n1->children[3];
-                root->children[3] = n2->children[3];
-             //   n1->children[3]   = n2->children[0];
-            }
+            root->children[0] = n1;
+            root->children[1] = n2;
+            return n2->values[0];
     }
 
-    Node* insert(Node* root, int input){
 
-        if(alreadyInserted(root,input)==true){
-            cout << "Value already in the tree, cannot insert "
-            << input << endl;
-            return root;
-        }
 
-        //Recusively try to find leaf node
-        while(root->leaf == false){
-            cout << "current Node is not a Leaf Node"<<endl;
-            if(input < root->values[0])
-                    insert(root->children[0],input);
-            else if(input >= root->values[0] && input < root->values[1])
-                    insert(root->children[1],input);
-            else if(input > root->values[1] && input < root->values[2])
-                    insert(root->children[2],input);
-            else
-                    insert(root->children[3],input);
-        }
-        //Variables for betting understanding of the code
-        root->act_num_of_vals++;
-        int actual = root->act_num_of_vals;
-        int maximum = root->max_num_of_vals;
-
-        //This is a cause for a split
-        if(areEqual(actual, maximum+1)){
-            split(root,input);
-            print(root);
-        }
-        else {
-            root->values[actual-1]= input;
-            insertion_sort( root->values,actual);
-        }
-        return root;
-    }
-
-    void remove(int val)
-    {
-
-    }
-
-    ~BPlusTree(){
-        root->ClearTree(root);
-        delete root->values;
-    }
-
-    void copyLowerVals(Node* n1, Node* root, int range){
-        n1->act_num_of_vals     = range;
-        n1->act_num_of_pointers = range+1;
-        for(int i= 0; i < range; i++){
-            n1->values[i]=root->values[i];
-        }
-    }
-
+    ///////////////////////////////////////////////
+    //             HELPER FUNCITONS              //
+    ///////////////////////////////////////////////
     void copyUpperVals(Node* n1, Node* root, int start, int stop){
         n1->act_num_of_vals     = stop-start;
         n1->act_num_of_pointers = stop-start+1;
@@ -273,11 +259,46 @@ public:
     void print(Node* n){
         for(int i = 0; i < n->max_num_of_vals; i++){
             cout << "i = " << i << ", root value = " << n->values[i] <<endl;
-            for(int j=0;j < n->max_num_of_pointers; j++)
-                if(n->children[j]!= NULL)
-                    print(n->children[j]);
         }
         return;
+    }
+
+    bool isLeaf(Node* root){
+        if(root->leaf == true)
+            return true;
+        else
+            return false;
+    }
+
+    void clearRemainingKeys(Node* root, int start){
+        for(int i= start-1; i < root->max_num_of_vals; i++)
+            root->values[i] = -1;
+    }
+
+    bool areEqual(int a, int b){
+        if(a==b)
+            return true;
+        else
+            return false;
+    }
+
+    bool alreadyInserted(Node* root, int input){
+        for(int i = 0; i < root->max_num_of_vals; i++){
+            //Value has already been inserted, cannot
+            //insert again
+            if(root->values[i] == input){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void copyLowerVals(Node* n1, Node* root, int range){
+        n1->act_num_of_vals     = range;
+        n1->act_num_of_pointers = range+1;
+        for(int i= 0; i < range; i++){
+            n1->values[i]=root->values[i];
+        }
     }
 
 };
