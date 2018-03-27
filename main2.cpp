@@ -226,14 +226,14 @@ public:
         Node* n1    = new Node();
         Node* n2    = new Node();
         node->leaf  = false;
-        temp->key[actual-1] = input;
+        temp->key[actual] = input;
 
-        for(int i = 0; i < actual-1; i++)
+        for(int i = 0; i < actual; i++)
             temp->key[i] = node->key[i];
 
         insertion_sort(temp->key,maximum+1);
-        mid = ceil(actual/2);
-
+        mid = ceil(actual/2)+1;
+        print(temp);
         //n1,n2 = destination; temp = src; mid,maximum+1 = positions
         copyLowerVals(n1,temp,mid);
         copyUpperVals(n2,temp,mid,maximum+1);
