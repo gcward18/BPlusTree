@@ -165,11 +165,9 @@ public:
         Node* temp = node;
 
         //Recusively try to find leaf node
-        while(!isLeaf(node)){
+        while(!isLeaf(temp)){
             temp = findLeafNode(node,input);
-            index = findIndex(node,input);
         }
-
         if(alreadyInserted(temp,input)){
             cout << "Value already in the tree, cannot insert "
             << input << endl;
@@ -179,15 +177,17 @@ public:
         //This is a cause for a split
         if(areEqual(actual, maximum)){
             split(temp,input,index);
-            cout << "NODE"<<endl;
+cout << "NODE"<<endl;
             print(temp);
         }
         else {
             temp->key[actual]= input;
             insertion_sort(temp->key,actual+1);
             temp->actVals++;
+            cout << "Printing Node that is being inserted into"<<endl;
+            print(temp);
         }
-
+        node = temp;
         return key;
     }
 
@@ -223,7 +223,7 @@ public:
         print(n1);
         cout << "CHILD 2"<<endl;
         print(n2);
-        node->key[0] = n2->key[0];
+        node->key[0] = n1->key[n1->actVals-1];
         node->actVals =1;
 
         delete temp;
@@ -289,57 +289,43 @@ public:
     }
 
     Node* findLeafNode(Node* src,int input){
-      if(input < src->key[0]){
-          findLeafNode(src->pointer[0],input);
-          //if(key != -1)
-            //something
-      }
-      else if(input >= src->key[0] && input < src->key[1]){
-          findLeafNode(src->pointer[1],input);
-          //if(key != -1)
-            //something
-      }
-      else if(input >= src->key[1] && input < src->key[2]){
-          findLeafNode(src->pointer[2],input);
-          //if(key != -1)
-            //something
-      }
-      else if(input >= src->key[2] ){
-          findLeafNode(src->pointer[3],input);
-          //if(key != -1)
-            //something
-      }
-      else
-          cout << "ERROR"<<endl;
-          return NULL;
+      cout << "is leaf? "<< endl;
+      if(!isLeaf(src)){
+          if(input <= src->key[0]){
+              src = findLeafNode(src->pointer[0],input);
+          }
+          else if(input <= src->key[1] || src->actVals == 1){
+              src = findLeafNode(src->pointer[1],input);
+          }
+          else if(input <= src->key[2] || src->actVals == 2){
+              src = findLeafNode(src->pointer[2],input);
+          }
+          else{
+              src = findLeafNode(src->pointer[3],input);
+          }
+
+        }
+
+        return src;
     }
 
     int findIndex(Node* src,int input,int index=0){
-      int holder;
-      if(input < src->key[0]){
-          holder = findIndex(src->pointer[0],input,0);
-          //if(key != -1)
-            //something
-      }
-      else if(input >= src->key[0] && input < src->key[1]){
-          holder = findIndex(src->pointer[1],input,1);
-          //if(key != -1)
-            //something
-      }
-      else if(input >= src->key[1] && input < src->key[2]){
-          holder = findIndex(src->pointer[2],input,2);
-          //if(key != -1)
-            //something
-      }
-      else if(input >= src->key[2] ){
-          holder = findIndex(src->pointer[3],input,3);
-          //if(key != -1)
-            //something
-      }
-      else{
-            cout << "ERROR"<<endl;
-            return -1;
-      }
+      int holder = index;
+      if(!isLeaf(src)){
+          if(input <= src->key[0]){
+              holder = findIndex(src->pointer[0],input,0);
+          }
+          else if(input <= src->key[1] || src->actVals == 1){
+              holder = findIndex(src->pointer[1],input,1);
+          }
+          else if(input <= src->key[2] || src->actVals == 2){
+              holder = findIndex(src->pointer[2],input,2);
+          }
+          else{
+              holder = findIndex(src->pointer[3],input,3);
+          }
+
+        }
       return holder;
     }
 };
