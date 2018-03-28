@@ -40,12 +40,14 @@ class Node{
         //Array of pointer  to used for internal nodes
         Node** pointer;
 
+        Node* parent;
+
         //Dynamic array of elements that are contained
         //within the B+ Tree nodes
         int*   key;
 
         //Variables representing the maximum number
-        //of pointer  and elements able to be stored
+        //of pointers and elements able to be stored
         //in a particular node
         int    maxVals;
         int    maxPtrs;
@@ -56,38 +58,19 @@ class Node{
         int    actVals;
         int    actPtrs;
 
-    Node(){
-
-        //Defaulting the key for a B+ Tree of p=4
-        leaf = true;
-        maxVals = 3;
-        pointer  = new Node*[maxVals+1];
-        key = new int[maxVals];
-        actVals = 0;
-        maxPtrs = maxVals+1;
-        actPtrs = 0;
-
-        //Set key to default -1, nothing has been
-        //inserted yet
-        for(int i = 0; i < maxVals; i++)
-            key[i] = -1;
-
-        //Defaultpointer to NULL
-        for(int i= 0; i < maxPtrs; i++)
-           pointer[i] = NULL;
-    }
-
-    //This is a constructor for an oversized node, to be
-    //used when the split function is called
-    Node(int input){
+    //This is a constructor for both a standard
+    //node of order 3 and an oversized node, to
+    //be used when the split function is called
+    Node(int input = 3){
 
         //Defaulting the key for a B+ Tree of p=num_vals
         leaf = true;
         maxVals = input;
-        pointer = new Node*[maxVals+1];
+        maxPtrs = maxVals+1;
         key = new int[maxVals];
+        pointer = new Node*[maxVals+1];
+        parent = NULL;
         actVals = 0;
-        maxPtrs = input+1;
         actPtrs = 0;
 
         //Default key to -1
@@ -110,6 +93,7 @@ class Node{
         actPtrs = node->actPtrs;
         key = new int[this->maxVals];
         pointer  = new Node*[this->maxPtrs];
+        parent = NULL;
 
         for(int i = 0; i < node->maxVals; i++){
             key[i] = node->key[i];
@@ -186,6 +170,7 @@ cout << "NODE"<<endl;
             temp->actVals++;
             cout << "Printing Node that is being inserted into"<<endl;
             print(temp);
+
         }
         node = temp;
         return key;
@@ -196,29 +181,46 @@ cout << "NODE"<<endl;
 
     }
 
-    int split(Node* node, int input, int index=0){
-
+    int split(Node* node, int input){
+        Node* parent = node->parent;
         int actual  = node->actVals;
         int maximum = node->maxVals;
-        int mid     = actual/2;
-
-        Node *temp  = new Node(4);
+        int mid;
+        int *temp  = new int(4);
         Node* n1    = new Node();
         Node* n2    = new Node();
 
         node->leaf  = false;
-        temp->key[actual] = input;
+        for(int i = 0, i < actual, i++)
+            temp[i] = node->key[i];
+        temp[actual] = input;
 
-        for(int i = 0; i < actual; i++)
-            temp->key[i] = node->key[i];
-
-        insertion_sort(temp->key,maximum+1);
-        mid = ceil(actual/2)+1;
+        insertion_sort(temp,maximum+1);
+        mid = ceil(actual/2);
         print(temp);
         //n1,n2 = destination; temp = src; mid,maximum+1 = positions
-        copyLowerVals(n1,temp,mid);
-        copyUpperVals(n2,temp,mid,maximum+1);
-        clearRemainingKeys(node,index+1);
+        node->pointer[0] = n1;
+        node->pointer[1] = n2;
+        for(int i = 0; i < mid; i++)
+            n1->values[i] = node->values[i];
+        for(int i = mid; i < maximum; i++)
+            n2->values[i-mid] = node->values[i];
+        node->values[0] = node->values[mid];
+        for(int i = 1; i < maximum; i++)
+            node->values[i] = -1;
+
+        if(parent != NULL)
+        {
+            if(parent->maxVals == parent -> actVals)
+                split(parent, node->values[0])
+            parent->values[parent->actVals] = node->values[0];
+            parent->pointers[parent->actVals] = n1;
+            parent->pointers[parent->actVals + 1] = n2;
+
+        }
+        //copyLowerVals(n1,temp,mid);
+        //copyUpperVals(n2,temp,mid,maximum+1);
+        //clearRemainingKeys(node,index+1);
         cout << "CHILD 1"<<endl;
         print(n1);
         cout << "CHILD 2"<<endl;
@@ -227,8 +229,6 @@ cout << "NODE"<<endl;
         node->actVals =1;
 
         delete temp;
-        node->pointer[index] = n1;
-        node->pointer[index+1] = n2;
         return n2->key[0];
     }
 
@@ -307,6 +307,7 @@ cout << "NODE"<<endl;
         }
 
         return src;
+
     }
 
     int findIndex(Node* src,int input,int index=0){
@@ -332,7 +333,7 @@ cout << "NODE"<<endl;
 
 int main()
 {
-    BPlusTree root;
+    BPlusTree tree;
     int numNodes = 0;
     int input = 0;
     cout << "Welcome to the B+ tree creator!" << endl;
@@ -344,7 +345,7 @@ int main()
             cout << "Input must be 3 digits or less" << endl;
         else if(input >= 0)
         {
-            root.insert(root.root,input);
+            root.insert(tree.root,input);
         }
     }
     cout << numNodes << endl;
