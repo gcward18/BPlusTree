@@ -142,7 +142,6 @@ public:
 
     int insert(Node* node, int input,int index=0){
 
-        int key;
         //Variables for betting understanding of the code
         int actual = node->actVals;
         int maximum = node->maxVals;
@@ -194,34 +193,68 @@ public:
         int actual  = node->actVals;
         int maximum = node->maxVals;
         int mid;
-        int *temp  = new int(4);
-        Node* n1    = new Node();
-        Node* n2    = new Node();
+        Node* *temp  = new Node(4);
+        Node* n1;
+        Node* n2;
 
-        node->leaf  = false;
         for(int i = 0, i < actual, i++)
-            temp[i] = node->key[i];
-        temp[actual] = input;
-
-        insertion_sort(temp,maximum+1);
+        {
+            temp->key[i] = node->key[i];
+            temp->pointer[i] = node->pointer[i];
+        }
+        temp->key[actual] = input;
         mid = ceil(actual/2);
-        print(temp);
-        //n1,n2 = destination; temp = src; mid,maximum+1 = positions
-        node->pointer[0] = n1;
-        node->pointer[1] = n2;
-        for(int i = 0; i < mid; i++)
-            n1->values[i] = node->values[i];
-        for(int i = mid; i < maximum; i++)
-            n2->values[i-mid] = node->values[i];
-        node->values[0] = node->values[mid];
-        for(int i = 1; i < maximum; i++)
-            node->values[i] = -1;
+        insertion_sort(temp,maximum+1);
 
+
+        if(parent->actVals == parent->maxVals)
+        {
+            split(parent, node->key[mid]);
+        }
+
+        parent->pointer[actual] = n1;
+        parent->pointer[actual+1] = n2;
+        parent->key[actual] = temp->key[mid];
+        for(int i = 0; i < mid; i++)
+        {
+            n1->key[i] = temp->key[i];
+            n1->pointer[i] =
+        }
+        for(int i = mid; i < maximum; i++)
+        {
+            n2->key[i-mid] = temp->key[i];
+        }
+        if(node->leaf)
+        {
+            for(int i = 0, i < actual, i++)
+                temp->key[i] = node->key[i];
+            temp[actual] = input;
+            mid = ceil(actual/2);
+            insertion_sort(temp,maximum+1);
+            if(parent->actVals == parent->maxVals)
+            {
+                split(parent, node->key[mid]);
+            }
+            parent->pointer[actual] = n1;
+            parent->pointer[actual+1] = n2;
+            parent->key[actual] = node->key[mid];
+            print(temp);
+            //n1,n2 = destination; temp = src; mid,maximum+1 = positions
+            node->pointer[0] = n1;
+            node->pointer[1] = n2;
+            for(int i = 0; i < mid; i++)
+                n1->key[i] = node->key[i];
+            for(int i = mid; i < maximum; i++)
+                n2->key[i-mid] = node->key[i];
+            node->key[0] = node->key[mid];
+            for(int i = 1; i < maximum; i++)
+                node->key[i] = -1;
+        }
         if(parent != NULL)
         {
             if(parent->maxVals == parent -> actVals)
-                split(parent, node->values[0])
-            parent->values[parent->actVals] = node->values[0];
+                split(parent, node->key[0])
+            parent->key[parent->actVals] = node->key[0];
             parent->pointers[parent->actVals] = n1;
             parent->pointers[parent->actVals + 1] = n2;
 
