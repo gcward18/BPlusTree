@@ -130,31 +130,46 @@ public:
         delete root->key;
     }
 
-    void printLeaves(Node* node, int pad=0)
+    void printLeaves()
     {
+        Node* node = root;
+        cout << "Root:" << endl;
+        for(int i = 0; i < root->actVals; i++)
+            cout << "Value: " << root->key[i] << endl;
         while(!node->leaf)
             node = node->pointer[0];
+        if(!root->leaf)
+        cout << "Middle Leaf has value #1: " << root->pointer[root->actVals-1]->key[0] << endl;
         while(node != NULL)
         {
             cout << "Node:" << endl;
             for(int i = 0; i < node->actVals; i++)
                 cout << "Value " << i << ": " << node->key[i] << endl;
-            cout << endl << endl;
+            cout << endl;
             node = node->next;
         }
+        cout << endl;
         return;
     }
 
     Node* findNextLeaf(Node* node)
     {
-        if(node->parent == NULL)
-            return NULL;
         int value = node->key[node->actVals - 1];
+        cout << "Finding node after: " << value << endl;
+        cout << "Of size " << node->actVals << endl;
+        if(node->parent == NULL)
+        {
+            cout << "Its the last node" << endl;
+            return NULL;
+        }
+
+
         Node* temp = node->parent;
         int index;
         for(int i = 0; i < temp->actPtrs; i++)
             if(temp->pointer[i]->key[temp->pointer[i]->actVals-1] == value)
                 index = i;
+        cout << "Index is " << index << endl;
         if(index == temp->actPtrs - 1)
         {
             return findNextLeaf(temp);
@@ -164,6 +179,7 @@ public:
             temp = temp->pointer[index+1];
             while(!temp->leaf)
                 temp = temp->pointer[0];
+            cout << "OK: " << temp->key[0] << endl;
             return temp;
         }
     }
@@ -172,6 +188,7 @@ public:
         Node* parent = node->parent;
         int childPosition;
         Node* newNode    = new Node();
+        newNode->parent = node->parent;
         node->next = newNode;
 
         //Splits the values between the 2 nodes
@@ -236,12 +253,15 @@ public:
                 for(int i = parent->maxPtrs - 1; i > childPosition + 1; i--)
                     parent->pointer[i] = parent->pointer[i-1];
                 parent->pointer[childPosition + 1] = newNode;
+                parent->actVals++;
+                parent->actPtrs++;
             }
         }
 
         //Get index of original node in parent
         cout << node->parent->key[0] << endl;
         numNodes++;
+        newNode->next = findNextLeaf(newNode);
         return node;
     }
 
@@ -252,6 +272,7 @@ public:
         int mid;
         Node* newNode    = new Node();
         newNode->leaf = false;
+        newNode->parent = node->parent;
 
         //Splits the values and pointers between the 2 nodes,
         //including new node from last split
@@ -337,6 +358,8 @@ public:
                 for(int i = parent->maxPtrs - 1; i > childPosition + 1; i--)
                     parent->pointer[i] = parent->pointer[i-1];
                 parent->pointer[childPosition + 1] = newNode;
+                parent->actVals++;
+                parent->actPtrs++;
             }
         }
 
@@ -385,7 +408,7 @@ public:
             temp->key[position] = input;
             temp->actVals++;
         }
-        printLeaves(node);
+        printLeaves();
 
         return temp;
     }
