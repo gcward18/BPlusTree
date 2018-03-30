@@ -199,15 +199,10 @@ cout << "NODE"<<endl;
         mid = ceil(actual/2);
         print(temp);
         //n1,n2 = destination; temp = src; mid,maximum+1 = positions
-        node->pointer[0] = n1;
-        node->pointer[1] = n2;
-        for(int i = 0; i < mid; i++)
-            n1->values[i] = node->values[i];
-        for(int i = mid; i < maximum; i++)
-            n2->values[i-mid] = node->values[i];
-        node->values[0] = node->values[mid];
-        for(int i = 1; i < maximum; i++)
-            node->values[i] = -1;
+        copyLowerVals(n1,temp,mid)
+        copyUpperVals(n2,temp,mid,maximum+1)
+        clearRemainingKeys(temp,0);
+        temp->key[0]=n2->key[0];
 
         if(parent != NULL)
         {
