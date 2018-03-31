@@ -424,6 +424,71 @@ public:
                     return i;
             return -1;
     }
+
+    void prettyPrint(ofstream& graphfile, Node* node, int position=0,int level=0)
+    {
+        if (node == NULL)
+            cout <<"";
+        else
+        {
+            prettyPrint(graphfile,node->pointer[0], position+1);
+            prettyPrint(graphfile,node->pointer[1], position+2);
+            prettyPrint(graphfile,node->pointer[2], position+3);
+            prettyPrint(graphfile,node->pointer[3], position+4);
+            if(node->pointer[0] == NULL){
+                 graphfile <<"node"<<position<<"[label = \" <f0> | &nbsp;" << node->key[0]<< "&nbsp; |";
+                if(node->key[1] == -1){
+                    graphfile << "  &nbsp;"<<" * "<<"&nbsp; |" ;
+                }
+                else
+                    graphfile << "  &nbsp;"<<node->key[1]<<"&nbsp; |" ;
+                if(node->key[2] == -1){
+                    graphfile <<" &nbsp;"<< " * "<<"&nbsp; | <f3> &bull;"<<" \" ];\n";
+                }
+                else
+                    graphfile <<" &nbsp;"<< node->key[2]<<"&nbsp; | <f3> &bull;"<<" \" ];\n";
+            }
+            else{
+                graphfile <<"node"<<position<<"[label = \" <f0> &bull;  | &nbsp;" << node->key[0]<< "&nbsp; |";
+                if(node->key[1] == -1){
+                    graphfile << " <f1> &bull; | &nbsp;"<<" * "<<"&nbsp; |" ;
+                }
+                else
+                    graphfile << " <f1> &bull; | &nbsp;"<<node->key[1]<<"&nbsp; |" ;
+
+                if(node->key[2] == -1){
+                    graphfile <<"<f2> &bull; | &nbsp;"<< " * "<<"&nbsp; | <f3> &bull;"<<" \" ];\n";
+                }
+                else
+                    graphfile <<"<f2> &bull; | &nbsp;"<< node->key[2]<<"&nbsp; | <f3> &bull;"<<" \" ];\n";
+
+            }
+
+
+        }
+        return;
+    }
+
+    void dotGraphFile(Node* node){
+        ofstream graphfile;
+        int numLevels=0;
+
+        graphfile.open("graph.dot");
+        graphfile << "digraph {\n" <<"graph [margin=0, splines=line];\n"<<"edge [penwidth=2];\n"
+                    <<"node [shape = record, margin=0.03,1.2, penwidth=2, style=filled, fillcolor=white];\n"<<endl;
+        prettyPrint(graphfile,node);
+
+        //Need to figure out how to recursively add all the pointers to sub trees
+        for(int i = 0; i < 1; i++){
+            for(int j= 0; j < 4; j++){
+                graphfile <<"node"<<i<<":f"<<j<<"->node"<<j+1 <<";"<<endl;
+                if(j+1 !=4)
+                    graphfile <<"node"<<j+1<<":f3->node"<<j+2<<":f0;\n";
+            }
+        }
+        graphfile << "}"<<endl;
+        graphfile.close();
+    }
 };
 
 
@@ -444,7 +509,7 @@ int main()
         {
             tree.insert(tree.root,input);
         }
-        //tree.prettyPrint(tree.root,0);
+        tree.dotGraphFile(tree.root);
     }
     cout << numNodes << endl;
     return 0;
