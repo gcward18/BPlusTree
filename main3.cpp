@@ -155,31 +155,29 @@ public:
     Node* findNextLeaf(Node* node)
     {
         int value = node->key[node->actVals - 1];
-        cout << "Finding node after: " << value << endl;
-        cout << "Of size " << node->actVals << endl;
         if(node->parent == NULL)
         {
-            cout << "Its the last node" << endl;
             return NULL;
         }
 
-
         Node* temp = node->parent;
         int index;
-        for(int i = 0; i < temp->actPtrs; i++)
+        for(int i = 0; i < temp->actPtrs; i++){
             if(temp->pointer[i]->key[temp->pointer[i]->actVals-1] == value)
                 index = i;
-        cout << "Index is " << index << endl;
+        }
+
         if(index == temp->actPtrs - 1)
         {
             return findNextLeaf(temp);
         }
         else
         {
+
             temp = temp->pointer[index+1];
+            return NULL;
             while(!temp->leaf)
                 temp = temp->pointer[0];
-            cout << "OK: " << temp->key[0] << endl;
             return temp;
         }
     }
@@ -259,7 +257,7 @@ public:
         }
 
         //Get index of original node in parent
-        cout << node->parent->key[0] << endl;
+        //cout << node->parent->key[0] << endl;
         numNodes++;
         newNode->next = findNextLeaf(newNode);
         return node;
@@ -321,7 +319,9 @@ public:
         node->actPtrs = 2;
         newNode->actPtrs = 3;
         newNode->actVals = 2;
-
+        newNode->pointer[0]->parent = newNode;
+        newNode->pointer[1]->parent = newNode;
+        newNode->pointer[2]->parent = newNode;
         //Makes new level if no parent
         if(parent == NULL)
         {
@@ -366,9 +366,9 @@ public:
         numNodes++;
         return node;
     }
-    Node* insert(Node* node, int input)
+    Node* insert(int input)
     {
-        //Variables for betting understanding of the code
+        Node* node = root;
         int actual;
         bool found = false;
       //  int maximum;
@@ -413,8 +413,58 @@ public:
         return temp;
     }
 
-    void remove(int val){
+    Node* remove(int input){
+        Node* node = root;
+        int actual;
+        int index;
+        Node* nodeWithValue;
+        bool found = false;
+        Node* temp = node;
+        //Find leaf node
+        while(!temp->leaf) {
+            for(int i = 0; i < temp->actVals; i++)
+                if(input == temp->key[i])
+                {
+                    nodeWithValue = temp;
+                    index = i;
+                }
 
+            if(input < temp->key[0])
+                temp = temp->pointer[0];
+            else if(input < temp->key[1] || temp->key[1] == -1)
+                temp = temp->pointer[1];
+            else if(input < temp->key[2] || temp->key[2] == -1)
+                temp = temp->pointer[2];
+            else
+                temp = temp->pointer[3];
+        }
+
+        for(int i = 0; i < temp->actVals; i++)
+            if(temp->key[i] == input)
+                found = true;
+        if(found)
+        {
+            cout << "Value already in the tree, cannot insert " << input << endl;
+            return node;
+        }
+        if(temp->maxVals == temp->actVals){
+            splitLeaf(temp, input);
+        }
+        else {
+            int position = temp->actVals;
+            for(int i = temp->actVals - 1; i >= 0; i--)
+            {
+                if(input < temp->key[i])
+                    position = i;
+            }
+            for(int i = temp->actVals; i > position; i--)
+                temp->key[i] = temp->key[i-1];
+            temp->key[position] = input;
+            temp->actVals++;
+        }
+        printLeaves();
+
+        return temp;
     }
 
     int getIndexOf(Node* node, int val)
@@ -442,7 +492,7 @@ int main()
             cout << "Input must be 3 digits or less" << endl;
         else if(input >= 0)
         {
-            tree.insert(tree.root,input);
+            tree.insert(input);
         }
         //tree.prettyPrint(tree.root,0);
     }
