@@ -1,0 +1,21 @@
+digraph {
+graph [margin=0, splines=line];
+edge [penwidth=2];
+node [shape = record, margin=0.03,1.2, penwidth=2, style=filled, fillcolor=white];
+
+node2[label = " <f0> | &nbsp;2&nbsp; |  &nbsp; * &nbsp; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node3[label = " <f0> | &nbsp;3&nbsp; |  &nbsp;4&nbsp; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node1[label = " <f0> &bull;  | &nbsp;2&nbsp; | <f1> &bull; | &nbsp; * &nbsp; |<f2> &bull; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node3[label = " <f0> | &nbsp;5&nbsp; |  &nbsp;6&nbsp; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node4[label = " <f0> | &nbsp;7&nbsp; |  &nbsp;8&nbsp; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node5[label = " <f0> | &nbsp;9&nbsp; |  &nbsp;10&nbsp; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node2[label = " <f0> &bull;  | &nbsp;6&nbsp; | <f1> &bull; | &nbsp;8&nbsp; |<f2> &bull; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node0[label = " <f0> &bull;  | &nbsp;4&nbsp; | <f1> &bull; | &nbsp; * &nbsp; |<f2> &bull; | &nbsp; * &nbsp; | <f3> &bull; " ];
+node0:f0->node1;
+node1:f3->node2:f0;
+node0:f1->node2;
+node2:f3->node3:f0;
+node0:f2->node3;
+node3:f3->node4:f0;
+node0:f3->node4;
+}

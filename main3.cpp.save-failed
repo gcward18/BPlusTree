@@ -1,7 +1,5 @@
 #include <iostream>
 #include <cmath>
-#include "fstream"
-#include <string>
 using namespace std;
 
 
@@ -140,12 +138,13 @@ public:
             cout << "Value: " << root->key[i] << endl;
         while(!node->leaf)
             node = node->pointer[0];
+        if(!root->leaf)
+        cout << "Middle Leaf has value #1: " << root->pointer[root->actVals-1]->key[0] << endl;
         while(node != NULL)
         {
             cout << "Node:" << endl;
             for(int i = 0; i < node->actVals; i++)
                 cout << "Value " << i << ": " << node->key[i] << endl;
-            if(numNodes !=1)
             cout << endl;
             node = node->next;
         }
@@ -160,22 +159,25 @@ public:
         {
             return NULL;
         }
+
         Node* temp = node->parent;
         int index;
         for(int i = 0; i < temp->actPtrs; i++){
             if(temp->pointer[i]->key[temp->pointer[i]->actVals-1] == value)
                 index = i;
         }
+
         if(index == temp->actPtrs - 1)
         {
             return findNextLeaf(temp);
         }
         else
         {
+
             temp = temp->pointer[index+1];
+            return NULL;
             while(!temp->leaf)
                 temp = temp->pointer[0];
-
             return temp;
         }
     }
@@ -679,9 +681,8 @@ public:
 
 
         if(temp->actVals > 1){
-            cout << "Vals:" << temp->actVals << endl;
-            for(int i = leafIndex; i < temp->actVals; i++)
-                temp->key[i] = temp->key[i+1];
+            for(int i = temp->actVals - 1; i > leafIndex; i--)
+                temp->key[i-1] = temp->key[i];
             temp->key[temp->actVals - 1] = -1;
             temp->actVals--;
             if(internalIndex != -1)
@@ -723,7 +724,7 @@ public:
             prettyPrint(graphfile,node->pointer[2], position+3);
             prettyPrint(graphfile,node->pointer[3], position+4);
             if(node->pointer[0] == NULL){
-                 graphfile << "node" << position << "[label = \" <f0> | &nbsp;" << node->key[0] << "&nbsp; |";
+                 graphfile <<"node"<<position<<"[label = \" <f0> | &nbsp;" << node->key[0]<< "&nbsp; |";
                 if(node->key[1] == -1){
                     graphfile << "  &nbsp;"<<" * "<<"&nbsp; |" ;
                 }
@@ -778,54 +779,23 @@ public:
     }
 };
 
-int isNum(string input)
-{
-    int result = 0;
-    int count = 0;
-    while(count < input.length())
-    {
-        if(input[count] < 48 or input[count] > 57 || count >= 3)
-            return -1;
-        result = result * 10 + input[count] - '0';
-        cout << result << endl;
-        count++;
-    }
-    return result;
-}
 
 int main()
 {
     BPlusTree tree;
-    bool inserting = true;
-    int numNodes = 0;
-    string input = "";
-    int num;
 
+    int numNodes = 0;
+    int input = 0;
     cout << "Welcome to the B+ tree creator!" << endl;
-    cout << "Please enter value you want to insert. To switch to delete, type delete" << endl;
-    while(input != "quit")
+    cout << "Please enter the starting key of the tree, type negative number when done:" << endl;
+    while(input >= 0)
     {
         cin >> input;
-        num = isNum(input);
-        if(input == "delete")
+        if(input > 999)
+            cout << "Input must be 3 digits or less" << endl;
+        else if(input >= 0)
         {
-            cout << "Now in delete mode: To switch to insert, type insert" << endl;
-            inserting = false;
-        }
-        else if(input == "insert")
-        {
-            cout << "Now in insert mode: To switch to delete, type delete" << endl;
-            inserting = true;
-        }
-        else if(num < 0)
-            cout << "Input must be an integer of 3 digits or less" << endl;
-        else if(inserting)
-        {
-            tree.insert(num);
-        }
-        else
-        {
-            tree.remove(num);
+            tree.insert(input);
         }
         tree.dotGraphFile(tree.root);
     }
