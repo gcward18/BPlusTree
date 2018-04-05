@@ -90,13 +90,13 @@ class Node{
 
     }
 
-    ~Node(){
-        for(int i = 0; i < maxPtrs; i++)
-            if(pointer[i] != NULL)
-                delete pointer[i];
-        delete[] pointer ;
-        delete parent;
-    }
+   /* ~Node(){
+            delete[] pointer;
+            delete parent;
+            delete next;
+            delete key;
+
+    }*/
 
 };
 
@@ -135,6 +135,7 @@ public:
     void printLeaves()
     {
         Node* node = root;
+        cout << "Root Values: " << root->actVals << endl;
         cout << "Root:" << endl;
         for(int i = 0; i < root->actVals; i++)
             cout << "Value: " << root->key[i] << endl;
@@ -419,19 +420,23 @@ public:
         bool toTheRight;
         int nodeGap;
         nodeGap = 0;
-
         if(left->key[0] = input)
             temp = left;
         else
             temp = right;
+        if(input == 7)
+        cout << "Index: " << temp->parent->pointer[0]->key[0] << endl;
         for(int i = indexToNode + 1; i < temp->parent->actPtrs; i++)
         {
-            sibling = temp->parent->pointer[i];
+            sibling = temp->parent->pointer[i]; /// When deleting 8, becomes first pointer
+            cout << "GOO " << root->pointer[0]->key[0] << endl;
             if(sibling->actVals > 1)
             {
                 siblingFound = true;
+                cout << "Key is " << sibling->key[1] << endl;
                 toTheRight = true;
                 nodeGap = i - indexToNode;
+                break;
             }
         }
         sibling = temp->parent->pointer[indexToNode + nodeGap];
@@ -449,7 +454,6 @@ public:
             }
             sibling = temp->parent->pointer[indexToNode-nodeGap];
         }
-
         if(siblingFound && toTheRight)
         {
             Node* leftSibling;
@@ -493,12 +497,12 @@ public:
         {
             if(left->key[0] == input)
                 left->key[0] = right->key[0];
-            for(int i = indexToNode + 1; i < left->parent->actVals-1; i++)
+            for(int i = indexToNode; i < left->parent->actVals-1; i++)
                 left->parent->key[i] = left->parent->key[i+1];
             left->parent->key[left->parent->actVals-1] = -1;
             for(int i = indexToNode + 1; i < left->parent->actPtrs-1; i++)
                 left->parent->pointer[i] = left->parent->pointer[i+1];
-            left->parent->key[left->parent->actPtrs-1] = -1;
+            left->parent->pointer[left->parent->actPtrs-1] = NULL;
             left->parent->actVals--;
             left->parent->actPtrs--;
 
@@ -507,6 +511,7 @@ public:
             {
                 internalMerge(left->parent);
             }
+            cout << right->maxPtrs << endl;
             delete right;
             return;
         }
@@ -519,7 +524,7 @@ public:
         bool toTheRight;
         int nodeGap = 0;
         int indexToNode;
-
+        int siblingIndex;
         if(node->parent == NULL)
         {
             root = node->pointer[0];
@@ -537,7 +542,9 @@ public:
             {
                 siblingFound = true;
                 toTheRight = true;
+                siblingIndex = i;
                 nodeGap = i - indexToNode;
+                break;
             }
         }
         sibling = node->parent->pointer[indexToNode + nodeGap];
@@ -551,22 +558,24 @@ public:
                     siblingFound = true;
                     toTheRight = false;
                     nodeGap = indexToNode - i;
+                    siblingIndex = i;
+                    break;
                 }
             }
             sibling = node->parent->pointer[indexToNode-nodeGap];
         }
-
         if(siblingFound && toTheRight)
         {
             Node* leftSibling;
             for(int i = 0; i < nodeGap; i++)
             {
-                leftSibling = node;
-                while(leftSibling->next != sibling)
-                    leftSibling = leftSibling->next;
-                leftSibling->key[1] = sibling->key[0];
+                leftSibling = node->parent->pointer[siblingIndex-1];
+                leftSibling->key[1] = sibling->parent->key[siblingIndex-1];
+                sibling->parent->key[siblingIndex-1] = sibling->key[0];
                 leftSibling->pointer[2] = sibling->pointer[0];
+                sibling->pointer[0]->parent = leftSibling;
                 leftSibling->actVals++;
+                leftSibling->actPtrs++;
                 for(int j = 0; j < sibling->actVals - 1; j++)
                     sibling->key[j] = sibling->key[j+1];
                 for(int j = 0; j < sibling->actPtrs - 1; j++)
@@ -575,8 +584,8 @@ public:
                 sibling->actVals--;
                 sibling->pointer[sibling->actPtrs-1] = NULL;
                 sibling->actPtrs--;
-                node->parent->key[indexToNode+nodeGap-i-1] = leftSibling->key[leftSibling->actVals-1];
                 sibling = leftSibling;
+                siblingIndex--;
             }
             node->key[0] = node->key[1];
             node->key[1] = -1;
@@ -588,19 +597,21 @@ public:
             Node* rightSibling;
             for(int i = 0; i < nodeGap; i++)
             {
-                rightSibling = sibling->next;
+                rightSibling = node->parent->pointer[siblingIndex+1];
                 rightSibling->key[1] = rightSibling->key[0];
-                rightSibling->key[0] = sibling->key[sibling->actVals-1];
+                rightSibling->key[0] = node->parent->key[siblingIndex];
+                node->parent->key[siblingIndex] = sibling->key[sibling->actVals-1];
                 rightSibling->actVals++;
                 rightSibling->pointer[2] = rightSibling->pointer[1];
                 rightSibling->pointer[1] = rightSibling->pointer[0];
                 rightSibling->pointer[0] = sibling->pointer[sibling->actPtrs-1];
+                sibling->pointer[sibling->actPtrs-1]->parent = rightSibling;
                 rightSibling->actPtrs++;
                 sibling->key[sibling->actVals-1] = -1;
                 sibling->actVals--;
-                rightSibling->actVals++;
-                node->parent->key[i - indexToNode + nodeGap];
+                sibling->actPtrs--;
                 sibling = rightSibling;
+                siblingIndex++;
             }
             node->key[node->actVals-1] = -1;
             node->actVals--;
@@ -622,10 +633,12 @@ public:
             left->key[0] = left->parent->key[indexToNode];
             left->key[1] = right->key[0];
             left->pointer[1] = right->pointer[0];
+            right->pointer[0]->parent = left;
             left->pointer[2] = right->pointer[1];
+            right->pointer[1]->parent = left;
             left->actVals = 2;
             left->actPtrs = 3;
-            for(int i = indexToNode; i < left->actVals-1; i++)
+            for(int i = indexToNode; i < left->parent->actVals-1; i++)
             {
                 left->parent->key[i] = left->parent->key[i+1];
                 left->parent->pointer[i+1] = left->parent->pointer[i+2];
@@ -657,17 +670,18 @@ public:
                     internalIndex = i;
                 }
 
-            if(input < temp->key[0])
+            if(input <= temp->key[0])
                 indexToNode = 0;
-            else if(input < temp->key[1] || temp->key[1] == -1)
+            else if(input <= temp->key[1] || temp->key[1] == -1)
                 indexToNode = 1;
-            else if(input < temp->key[2] || temp->key[2] == -1)
+            else if(input <= temp->key[2] || temp->key[2] == -1)
                 indexToNode = 2;
             else
                 indexToNode = 3;
             temp = temp->pointer[indexToNode];
         }
-
+        if(temp->parent != root)
+            cout << "rartartr" << endl;
         for(int i = 0; i < temp->actVals; i++)
             if(temp->key[i] == input)
                 leafIndex = i;
@@ -679,8 +693,7 @@ public:
 
 
         if(temp->actVals > 1){
-            cout << "Vals:" << temp->actVals << endl;
-            for(int i = leafIndex; i < temp->actVals; i++)
+            for(int i = leafIndex; i < temp->actVals - 1; i++)
                 temp->key[i] = temp->key[i+1];
             temp->key[temp->actVals - 1] = -1;
             temp->actVals--;
@@ -694,6 +707,7 @@ public:
                 temp->key[0] = -1;
                 temp->actVals = 0;
             }
+
             else if(temp->next != NULL)
                 leafMerge(temp, temp->next, temp->key[0], indexToNode);
             else
@@ -787,7 +801,6 @@ int isNum(string input)
         if(input[count] < 48 or input[count] > 57 || count >= 3)
             return -1;
         result = result * 10 + input[count] - '0';
-        cout << result << endl;
         count++;
     }
     return result;
