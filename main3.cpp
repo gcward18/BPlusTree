@@ -418,22 +418,17 @@ public:
         Node* temp;
         bool siblingFound = false;
         bool toTheRight;
-        int nodeGap;
-        nodeGap = 0;
-        if(left->key[0] = input)
+        int nodeGap = 0;
+        if(left->key[0] == input)
             temp = left;
         else
             temp = right;
-        if(input == 7)
-        cout << "Index: " << temp->parent->pointer[0]->key[0] << endl;
         for(int i = indexToNode + 1; i < temp->parent->actPtrs; i++)
         {
-            sibling = temp->parent->pointer[i]; /// When deleting 8, becomes first pointer
-            cout << "GOO " << root->pointer[0]->key[0] << endl;
+            sibling = temp->parent->pointer[i];
             if(sibling->actVals > 1)
             {
                 siblingFound = true;
-                cout << "Key is " << sibling->key[1] << endl;
                 toTheRight = true;
                 nodeGap = i - indexToNode;
                 break;
@@ -450,6 +445,7 @@ public:
                     siblingFound = true;
                     toTheRight = false;
                     nodeGap = indexToNode - i;
+                    break;
                 }
             }
             sibling = temp->parent->pointer[indexToNode-nodeGap];
@@ -468,11 +464,11 @@ public:
                     sibling->key[j] = sibling->key[j+1];
                 sibling->key[sibling->actVals-1] = -1;
                 sibling->actVals--;
-                temp->parent->key[indexToNode + nodeGap - i - 1] = leftSibling->key[leftSibling->actVals-1];
+                temp->parent->key[indexToNode + nodeGap - i - 1] = leftSibling->key[1];
                 sibling = leftSibling;
             }
-            temp->key[0] = temp->key[temp->actVals-1];
-            temp->key[temp->actVals-1] = -1;
+            temp->key[0] = temp->key[1];
+            temp->key[1] = -1;
             temp->actVals--;
         }
         else if(siblingFound && !toTheRight)
@@ -486,12 +482,12 @@ public:
                 rightSibling->actVals++;
                 sibling->key[sibling->actVals-1] = -1;
                 sibling->actVals--;
-                rightSibling->actVals++;
-                temp->parent->key[i - indexToNode + nodeGap];
+                temp->parent->key[i + indexToNode - nodeGap] = sibling->key[sibling->actVals-1];
                 sibling = rightSibling;
             }
-            temp->key[temp->actVals-1] = -1;
+            temp->key[1] = -1;
             temp->actVals--;
+            cout << temp->actVals << endl;
         }
         else
         {
@@ -511,7 +507,6 @@ public:
             {
                 internalMerge(left->parent);
             }
-            cout << right->maxPtrs << endl;
             delete right;
             return;
         }
@@ -530,6 +525,7 @@ public:
             root = node->pointer[0];
             delete node;
             root->parent = NULL;
+            cout << "Test" << endl;
             return;
         }
         for(int i = 0; i < node->parent->actPtrs; i++)
@@ -614,7 +610,7 @@ public:
                 siblingIndex++;
             }
             node->key[node->actVals-1] = -1;
-            node->actVals--;
+            node->pointer[2] = NULL;
         }
         else
         {
@@ -624,20 +620,27 @@ public:
             {
                 left = node->parent->pointer[indexToNode-1];
                 right = node;
+                left->key[1] = left->parent->key[indexToNode-1];
+                left->pointer[2] = right->pointer[0];
+                right->pointer[0]->parent = left;
+                left->actVals = 2;
+                left->actPtrs = 3;
+                indexToNode--;
             }
             else
             {
                 left = node;
                 right = node->parent->pointer[indexToNode+1];
+                left->key[0] = left->parent->key[indexToNode];
+                left->key[1] = right->key[0];
+                left->pointer[1] = right->pointer[0];
+                right->pointer[0]->parent = left;
+                left->pointer[2] = right->pointer[1];
+                right->pointer[1]->parent = left;
+                left->actVals = 2;
+                left->actPtrs = 3;
             }
-            left->key[0] = left->parent->key[indexToNode];
-            left->key[1] = right->key[0];
-            left->pointer[1] = right->pointer[0];
-            right->pointer[0]->parent = left;
-            left->pointer[2] = right->pointer[1];
-            right->pointer[1]->parent = left;
-            left->actVals = 2;
-            left->actPtrs = 3;
+
             for(int i = indexToNode; i < left->parent->actVals-1; i++)
             {
                 left->parent->key[i] = left->parent->key[i+1];
@@ -669,7 +672,7 @@ public:
                     nodeWithValue = temp;
                     internalIndex = i;
                 }
-
+            cout << temp->key[1] << " " << temp->leaf << endl;
             if(input <= temp->key[0])
                 indexToNode = 0;
             else if(input <= temp->key[1] || temp->key[1] == -1)
@@ -678,10 +681,9 @@ public:
                 indexToNode = 2;
             else
                 indexToNode = 3;
+            cout << "Index: " << indexToNode << endl;
             temp = temp->pointer[indexToNode];
         }
-        if(temp->parent != root)
-            cout << "rartartr" << endl;
         for(int i = 0; i < temp->actVals; i++)
             if(temp->key[i] == input)
                 leafIndex = i;
@@ -690,8 +692,6 @@ public:
             cout << "Value not in the tree, cannot delete " << input << endl;
             return node;
         }
-
-
         if(temp->actVals > 1){
             for(int i = leafIndex; i < temp->actVals - 1; i++)
                 temp->key[i] = temp->key[i+1];
@@ -707,14 +707,28 @@ public:
                 temp->key[0] = -1;
                 temp->actVals = 0;
             }
-
             else if(temp->next != NULL)
                 leafMerge(temp, temp->next, temp->key[0], indexToNode);
             else
+            {
                 leafMerge(temp->parent->pointer[indexToNode-1], temp, temp->key[0], indexToNode);
+            }
         }
         printLeaves();
-
+        Node* leftLeaf = root;
+        while(!leftLeaf->leaf)
+            leftLeaf = leftLeaf->pointer[0];
+        if(leftLeaf->parent == NULL)
+            return temp;
+        while(leftLeaf != NULL)
+        {
+            int ptrs = leftLeaf->parent->actPtrs;
+            for(int i = 0; i < ptrs; i++)
+            {
+                leftLeaf->parent->pointer[i] = leftLeaf;
+                leftLeaf = leftLeaf->next;
+            }
+        }
         return temp;
     }
 
@@ -840,7 +854,7 @@ int main()
         {
             tree.remove(num);
         }
-        tree.dotGraphFile(tree.root);
+        //tree.dotGraphFile(tree.root);
     }
     cout << numNodes << endl;
     return 0;

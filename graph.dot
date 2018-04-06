@@ -3,12 +3,3 @@ graph [margin=0, splines=line];
 edge [penwidth=2];
 node [shape = record, margin=0.03,1.2, penwidth=2, style=filled, fillcolor=white];
 
-node0[label = " <f0> | &nbsp;10&nbsp; |  &nbsp; * &nbsp; | &nbsp; * &nbsp; | <f3> &bull; " ];
-node0:f0->node1;
-node1:f3->node2:f0;
-node0:f1->node2;
-node2:f3->node3:f0;
-node0:f2->node3;
-node3:f3->node4:f0;
-node0:f3->node4;
-}
