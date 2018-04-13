@@ -5,17 +5,6 @@
 using namespace std;
 
 
-template <typename T>
-void swap_val(T& val1,T& val2){
-    T temp = val1;
-    val1 = val2;
-    val2 = temp;
-
-    return;
-}
-
-
-
 class Node{
     public:
 
@@ -25,7 +14,11 @@ class Node{
 
         //Array of pointer  to used for internal nodes
         Node** pointer;
+
+        //Pointer to next leaf node, only initialized if leaf is true
         Node* next;
+
+        //Pointer to parent of this node
         Node* parent;
 
         //Dynamic array of elements that are contained
@@ -71,50 +64,12 @@ class Node{
         }
     }
 
-    Node(Node* src){
-
-        this->leaf = true;
-        this->maxVals = src->maxVals;
-        this->actVals = src->actVals;
-        this->maxPtrs = src->maxPtrs;
-        this->actPtrs = src->actPtrs;
-        this->key = new int[this->maxVals];
-        this->pointer  = new Node*[this->maxPtrs];
-        this->parent = NULL;
-
-        for(int i = 0; i < src->maxVals; i++){
-            this->key[i] = src->key[i];
-            this->pointer [i] = src->pointer[i];
-        }
-        this->pointer[src->maxVals] = src->pointer[src->maxVals];
-
+    ~Node(){
+        delete[] pointer;
+        delete key;
     }
-
-   /* ~Node(){
-            delete[] pointer;
-            delete parent;
-            delete next;
-            delete key;
-
-    }*/
 
 };
-
-void insertion_sort(Node* node)
-{
-    int i = 1;
-    int j = 0;
-    while(i < node->actVals)
-    {
-        j = i - 1;
-        while((node->key[j] > node->key[j+1]) && (j >= 0))
-        {
-            swap_val(node->key[j], node->key[j+1]);
-            j--;
-        }
-        i++;
-    }
-}
 
 class BPlusTree
 {
@@ -132,10 +87,11 @@ public:
         delete root->key;
     }
 
+    //Prints the leaves and the root
     void printLeaves()
     {
         Node* node = root;
-        cout << "Root Values: " << root->actVals << endl;
+        //Outputs root node
         cout << "Root:" << endl;
         for(int i = 0; i < root->actVals; i++)
             cout << "Value: " << root->key[i] << endl;
@@ -143,6 +99,7 @@ public:
             node = node->pointer[0];
         while(node != NULL)
         {
+            //Outputs all leaf nodes
             cout << "Node:" << endl;
             for(int i = 0; i < node->actVals; i++)
                 cout << "Value " << i << ": " << node->key[i] << endl;
@@ -153,24 +110,21 @@ public:
         cout << endl;
         return;
     }
-
+    //Gives the leaf directly to the right of the leaf parameter given
     Node* findNextLeaf(Node* node)
     {
         int value = node->key[node->actVals - 1];
         if(node->parent == NULL)
-        {
             return NULL;
-        }
         Node* temp = node->parent;
         int index;
-        for(int i = 0; i < temp->actPtrs; i++){
+        //Finds index of node in parent
+        for(int i = 0; i < temp->actPtrs; i++)
             if(temp->pointer[i]->key[temp->pointer[i]->actVals-1] == value)
                 index = i;
-        }
+        //If node is right sibling, find sibling of parent
         if(index == temp->actPtrs - 1)
-        {
             return findNextLeaf(temp);
-        }
         else
         {
             temp = temp->pointer[index+1];
@@ -180,7 +134,9 @@ public:
             return temp;
         }
     }
-    Node* splitLeaf(Node* node, int input)
+
+    //Splits leaf into 2 nodes
+    void splitLeaf(Node* node, int input)
     {
         Node* parent = node->parent;
         int childPosition;
@@ -259,10 +215,10 @@ public:
         //cout << node->parent->key[0] << endl;
         numNodes++;
         newNode->next = findNextLeaf(newNode);
-        return node;
+        return;
     }
-
-    Node* splitInternalNode(Node* node, int input, Node* childNode, int index)
+    //Splits internal node into 2 nodes
+    void splitInternalNode(Node* node, int input, Node* childNode, int index)
     {
         Node* parent = node->parent;
         int childPosition;
@@ -363,14 +319,12 @@ public:
         }
 
         numNodes++;
-        return node;
+        return;
     }
     Node* insert(int input)
     {
         Node* node = root;
-        int actual;
         bool found = false;
-      //  int maximum;
         Node* temp = node;
         //Find leaf node
         while(!temp->leaf) {
@@ -384,6 +338,7 @@ public:
                 temp = temp->pointer[3];
         }
 
+        //Looks for input in node, if not found ends function
         for(int i = 0; i < temp->actVals; i++)
             if(temp->key[i] == input)
                 found = true;
@@ -392,6 +347,8 @@ public:
             cout << "Value already in the tree, cannot insert " << input << endl;
             return node;
         }
+
+        //Splits if node is full, else simply inserts value
         if(temp->maxVals == temp->actVals){
             splitLeaf(temp, input);
         }
@@ -409,9 +366,10 @@ public:
         }
         printLeaves();
 
-        return temp;
+        return;
     }
 
+    //Turns 2 leaf nodes into 1 node
     void leafMerge(Node* left, Node* right, int input, int indexToNode)
     {
         Node* sibling;
@@ -419,10 +377,14 @@ public:
         bool siblingFound = false;
         bool toTheRight;
         int nodeGap = 0;
+
+        //Finds which node contains input
         if(left->key[0] == input)
             temp = left;
         else
             temp = right;
+
+        //Checks all right siblings to see if one has an extra value
         for(int i = indexToNode + 1; i < temp->parent->actPtrs; i++)
         {
             sibling = temp->parent->pointer[i];
@@ -435,6 +397,8 @@ public:
             }
         }
         sibling = temp->parent->pointer[indexToNode + nodeGap];
+
+        //If right sibling not found, checks left
         if(!siblingFound)
         {
             for(int i = indexToNode - 1; i >= 0; i--)
@@ -450,6 +414,8 @@ public:
             }
             sibling = temp->parent->pointer[indexToNode-nodeGap];
         }
+
+        //Moves the extra sibling value down the siblings to the node
         if(siblingFound && toTheRight)
         {
             Node* leftSibling;
@@ -489,6 +455,8 @@ public:
             temp->actVals--;
             cout << temp->actVals << endl;
         }
+
+        //If no node found, merge sibling
         else
         {
             if(left->key[0] == input)
@@ -501,17 +469,20 @@ public:
             left->parent->pointer[left->parent->actPtrs-1] = NULL;
             left->parent->actVals--;
             left->parent->actPtrs--;
-
             left->next = right->next;
+
+            //If value removed was last value of parent, merge parent with sibling
             if(left->parent->actVals == 0)
             {
                 internalMerge(left->parent);
             }
             delete right;
+            numNodes--;
             return;
         }
     }
 
+    //Merges 2 internal nodes into 1
     void internalMerge(Node* node)
     {
         Node* sibling;
@@ -520,17 +491,22 @@ public:
         int nodeGap = 0;
         int indexToNode;
         int siblingIndex;
+
+        //If node has no parent, reduce level by 1
         if(node->parent == NULL)
         {
             root = node->pointer[0];
             delete node;
+            numNodes--;
             root->parent = NULL;
             cout << "Test" << endl;
             return;
         }
+        //Find index of node in parent
         for(int i = 0; i < node->parent->actPtrs; i++)
             if(node->parent->pointer[i] == node)
                 indexToNode = i;
+        //Look for appropriate right sibling
         for(int i = indexToNode + 1; i < node->parent->actPtrs; i++)
         {
             sibling = node->parent->pointer[i];
@@ -544,6 +520,7 @@ public:
             }
         }
         sibling = node->parent->pointer[indexToNode + nodeGap];
+        //If no right sibling found, look for appropriate left sibling
         if(!siblingFound)
         {
             for(int i = indexToNode - 1; i >= 0; i--)
@@ -560,6 +537,7 @@ public:
             }
             sibling = node->parent->pointer[indexToNode-nodeGap];
         }
+        //Move extra value and pointer from sibling to next node until reaching node
         if(siblingFound && toTheRight)
         {
             Node* leftSibling;
@@ -612,10 +590,12 @@ public:
             node->key[node->actVals-1] = -1;
             node->pointer[2] = NULL;
         }
+        //If no appropriate sibling, merge nodes
         else
         {
             Node* left;
             Node* right;
+            //Merge right node if available, else left
             if(indexToNode == node->parent->actPtrs-1)
             {
                 left = node->parent->pointer[indexToNode-1];
@@ -650,9 +630,11 @@ public:
             left->parent->pointer[left->parent->actPtrs-1] = NULL;
             left->parent->actVals--;
             left->parent->actPtrs--;
+            //If parent's last value was removed, merge it with sibling
             if(left->parent->actVals == 0)
                 internalMerge(left->parent);
             delete right;
+            numNodes--;
         }
     }
 
@@ -684,6 +666,7 @@ public:
             cout << "Index: " << indexToNode << endl;
             temp = temp->pointer[indexToNode];
         }
+        //Find value in tree, if not existent, cannot delete, return
         for(int i = 0; i < temp->actVals; i++)
             if(temp->key[i] == input)
                 leafIndex = i;
@@ -692,6 +675,8 @@ public:
             cout << "Value not in the tree, cannot delete " << input << endl;
             return node;
         }
+
+        //If not last value, remove value
         if(temp->actVals > 1){
             for(int i = leafIndex; i < temp->actVals - 1; i++)
                 temp->key[i] = temp->key[i+1];
@@ -700,6 +685,7 @@ public:
             if(internalIndex != -1)
                 nodeWithValue->key[internalIndex] = temp->key[temp->actVals - 1];
         }
+        //If last value, merge nodes unless there is only 1
         else
         {
             if(temp->parent == NULL)
@@ -715,29 +701,7 @@ public:
             }
         }
         printLeaves();
-        Node* leftLeaf = root;
-        while(!leftLeaf->leaf)
-            leftLeaf = leftLeaf->pointer[0];
-        if(leftLeaf->parent == NULL)
-            return temp;
-        while(leftLeaf != NULL)
-        {
-            int ptrs = leftLeaf->parent->actPtrs;
-            for(int i = 0; i < ptrs; i++)
-            {
-                leftLeaf->parent->pointer[i] = leftLeaf;
-                leftLeaf = leftLeaf->next;
-            }
-        }
         return temp;
-    }
-
-    int getIndexOf(Node* node, int val)
-    {
-            for(int i = 0; i < node->actVals; i++)
-                if(node->key[i] == val)
-                    return i;
-            return -1;
     }
 
     void prettyPrint(ofstream& graphfile, Node* node, int position=0,int level=0)
