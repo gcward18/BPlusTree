@@ -321,23 +321,24 @@ public:
         numNodes++;
         return;
     }
-    Node* insert(int input)
+    void insert(int input)
     {
         Node* node = root;
         bool found = false;
         Node* temp = node;
         //Find leaf node
         while(!temp->leaf) {
-            if(input < temp->key[0])
+            if(input <= temp->key[0])
                 temp = temp->pointer[0];
-            else if(input < temp->key[1] || temp->key[1] == -1)
+            else if(input <= temp->key[1] || temp->key[1] == -1)
                 temp = temp->pointer[1];
-            else if(input < temp->key[2] || temp->key[2] == -1)
+            else if(input <= temp->key[2] || temp->key[2] == -1)
                 temp = temp->pointer[2];
             else
                 temp = temp->pointer[3];
         }
-
+        if(input == 12 && temp->parent!=NULL)
+            cout << temp->parent->key[0] << endl;
         //Looks for input in node, if not found ends function
         for(int i = 0; i < temp->actVals; i++)
             if(temp->key[i] == input)
@@ -345,7 +346,7 @@ public:
         if(found)
         {
             cout << "Value already in the tree, cannot insert " << input << endl;
-            return node;
+            return;
         }
 
         //Splits if node is full, else simply inserts value
