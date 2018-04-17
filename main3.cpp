@@ -705,18 +705,14 @@ public:
         return temp;
     }
 
-    void prettyPrint(ofstream& graphfile, Node* node, int position=0,int level=0)
+    int prettyPrint(ofstream& graphfile, Node* node, int count)
     {
         if (node == NULL)
             cout <<"";
         else
         {
-            prettyPrint(graphfile,node->pointer[0], position+1);
-            prettyPrint(graphfile,node->pointer[1], position+2);
-            prettyPrint(graphfile,node->pointer[2], position+3);
-            prettyPrint(graphfile,node->pointer[3], position+4);
             if(node->pointer[0] == NULL){
-                 graphfile << "node" << position << "[label = \" <f0> | &nbsp;" << node->key[0] << "&nbsp; |";
+                 graphfile << "node" << count << "[label = \" <f0> | &nbsp;" << node->key[0] << "&nbsp; |";
                 if(node->key[1] == -1){
                     graphfile << "  &nbsp;"<<" * "<<"&nbsp; |" ;
                 }
@@ -729,7 +725,7 @@ public:
                     graphfile <<" &nbsp;"<< node->key[2]<<"&nbsp; | <f3> &bull;"<<" \" ];\n";
             }
             else{
-                graphfile <<"node"<<position<<"[label = \" <f0> &bull;  | &nbsp;" << node->key[0]<< "&nbsp; |";
+                graphfile <<"node"<<count<<"[label = \" <f0> &bull;  | &nbsp;" << node->key[0]<< "&nbsp; |";
                 if(node->key[1] == -1){
                     graphfile << " <f1> &bull; | &nbsp;"<<" * "<<"&nbsp; |" ;
                 }
@@ -744,31 +740,66 @@ public:
 
             }
 
-
         }
-        return;
+        for(int i = 0 ;i < node->actPtrs;i++){
+            count = prettyPrint(graphfile,node->pointer[i],count+=1);
+        }
+        return count;
+    }
+
+    int connectGraph(ofstream& graphfile, Node* node, int count){
+        int nodesInSubTree=1;
+        if (node == NULL)
+            cout <<endl;
+        if(node->leaf == false && count != 0){
+            for(int i = 0; i < node->actPtrs; i++){
+                graphfile <<"node"<<count<<":f"<<i<<"->node"<<count+i+1 <<";"<<endl;
+
+            }
+        }
+        if(count == 0){
+            for(int i= 0 ; i < node->actPtrs; i++){
+                if(i > 0)
+                    nodesInSubTree = countSubTree(node->pointer[i-1], nodesInSubTree);
+
+                if(i < 1 || node->pointer[i]->leaf == true)
+                    graphfile <<"node"<<count<<":f"<<i<<"->node"<<count+i+1 <<";"<<endl;
+                else
+                    graphfile << "node"<<count<< ":f" << i << "->node"<< nodesInSubTree+i <<";"<<endl;
+            }
+        }
+        for(int i = 0 ;i < node->actPtrs;i++){
+            count = connectGraph(graphfile,node->pointer[i],count+=1);
+        }
+        return count;
+    }
+
+    int countSubTree(Node* node, int count){
+        if (node == NULL)
+            cout <<endl;
+        for(int i = 0 ;i < node->actPtrs;i++){
+            count = countSubTree(node->pointer[i],count+=1);
+        }
+        return count;
     }
 
     void dotGraphFile(Node* node){
         ofstream graphfile;
-        int numLevels=0;
+        Node *temp = node;
+        int numNodes;
 
-        graphfile.open("graph.dot");
+        graphfile.open("printGraph.dot");
         graphfile << "digraph {\n" <<"graph [margin=0, splines=line];\n"<<"edge [penwidth=2];\n"
                     <<"node [shape = record, margin=0.03,1.2, penwidth=2, style=filled, fillcolor=white];\n"<<endl;
-        prettyPrint(graphfile,node);
+        numNodes = prettyPrint(graphfile,temp,0);
 
         //Need to figure out how to recursively add all the pointers to sub trees
-        for(int i = 0; i < 1; i++){
-            for(int j= 0; j < 4; j++){
-                graphfile <<"node"<<i<<":f"<<j<<"->node"<<j+1 <<";"<<endl;
-                if(j+1 !=4)
-                    graphfile <<"node"<<j+1<<":f3->node"<<j+2<<":f0;\n";
-            }
-        }
+        connectGraph(graphfile,temp,0);
+
         graphfile << "}"<<endl;
         graphfile.close();
     }
+
 };
 
 int isNum(string input)
@@ -819,7 +850,7 @@ int main()
         {
             tree.remove(num);
         }
-        //tree.dotGraphFile(tree.root);
+        tree.dotGraphFile(tree.root);
     }
     cout << numNodes << endl;
     return 0;
